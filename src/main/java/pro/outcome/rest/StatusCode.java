@@ -25,4 +25,8 @@ public class StatusCode {
 		}
 		return Strings.expand(_message, params);
 	}
+	
+	public String toString() {
+		return Integer.toString(code);
+	}
 }
