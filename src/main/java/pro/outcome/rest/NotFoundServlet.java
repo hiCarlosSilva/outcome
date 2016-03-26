@@ -12,10 +12,6 @@ import pro.outcome.rest.Servlet;
 
 public class NotFoundServlet extends Servlet {
 
-	public NotFoundServlet() {
-		super(null);
-	}
-
 	public void doGet(Request req, Response resp) throws IOException {
 		String uri = (String)req.getAttribute("javax.servlet.error.request_uri");
 		resp.sendError(StatusCodes.NOT_FOUND, null, uri);

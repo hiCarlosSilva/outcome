@@ -70,7 +70,7 @@ public abstract class Facade<I extends Instance<?>> {
 			throw new IntegrityException();
 		}
 		// Persist:
-    	_ds.put(i.getContainer());
+    	_ds.put(i.getGoogleEntity());
     	
 	}
 	
@@ -107,7 +107,7 @@ public abstract class Facade<I extends Instance<?>> {
 		}
 		// Delete the instance:
 		_logger.info("running query: DELETE FROM {} WHERE id = {}", getClass().getSimpleName(), i.getId());
-		_ds.delete(i.getContainer().getKey());
+		_ds.delete(i.getGoogleEntity().getKey());
 	}
 
 	public I get(Long id) {
@@ -257,7 +257,7 @@ public abstract class Facade<I extends Instance<?>> {
 			return null;
 		}
 		I i = _newInstance();
-		i.setContainer(e);
+		i.setGoogleEntity(e);
 		return i;
 	}
 	

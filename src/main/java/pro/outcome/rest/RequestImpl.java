@@ -6,13 +6,12 @@ package pro.outcome.rest;
 import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequestWrapper;
-
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Cookie;
+import pro.outcome.data.Config;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Strings;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Cookie;
 
 
 public class RequestImpl extends HttpServletRequestWrapper implements Request {
@@ -82,7 +81,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 			}
 			else {
 				try {
-					return URLDecoder.decode(qs, Config.CHARSET);
+					return URLDecoder.decode(qs, Config.ref.getCharset());
 				}
 				catch(UnsupportedEncodingException uee) {
 					throw new IntegrityException(uee);

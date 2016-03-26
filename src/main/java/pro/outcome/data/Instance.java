@@ -102,7 +102,7 @@ public abstract class Instance<M extends Model> {
 		}
 		// Validate data type (it should be enforced by the compiler):
 		if(value != null) {
-			if(value.getClass() != f.getType()) {
+			if(!f.getType().isAssignableFrom(value.getClass())) {
 				throw new IntegrityException(value.getClass());
 			}
 		}
@@ -144,23 +144,23 @@ public abstract class Instance<M extends Model> {
 	}
 
 	// For Facade:
-	Entity getContainer() {
+	Entity getGoogleEntity() {
 		return _e;
 	}
 
 	// For Facade._createFrom:
-	void setContainer(Entity e) {
+	void setGoogleEntity(Entity e) {
 		_updates.clear();
 		//_e.setPropertiesFrom(e);
 		_e = e;
 	}
 	
-	// For Facade
+	// For Self and Facade
 	boolean willInsert() {
 		return !_e.getKey().isComplete();
 	}
 	
-	// For Facade
+	// For Self and Facade
 	boolean willUpdate() {
 		return _e.getKey().isComplete();
 	}

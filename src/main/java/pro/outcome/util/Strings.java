@@ -356,7 +356,8 @@ public class Strings {
 			if(p == null) {
 				p = Constants.NULL_LC;
 			}
-			s = s.replaceFirst(_EXPANSION_REGEX, p.toString());
+			// TODO check why we need to escape this
+			s = s.replaceFirst(_EXPANSION_REGEX, escape(p.toString(), "$"));
 		}
 		return s;
 	}

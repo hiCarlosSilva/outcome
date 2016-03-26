@@ -4,7 +4,7 @@
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
 import java.io.PrintWriter;
-
+import javax.servlet.http.HttpServletResponse;
 import pro.outcome.util.Logger;
 
 
@@ -54,6 +54,7 @@ class ErrorHandler {
 		// (this may not work if the response has already been committed)
 		try {
 			response.setContentType("text/plain");
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			PrintWriter out = response.getWriter();
 			out.println(_MSG_ERROR);
 			t1.printStackTrace(out);
