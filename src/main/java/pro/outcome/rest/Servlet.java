@@ -37,10 +37,6 @@ public abstract class Servlet extends HttpServlet {
 		_process(HTTP_METHOD.POST, req, resp);
 	}
 
-	public final void doHead(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.HEAD, req, resp);
-	}
-
 	public final void doTrace(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		_process(HTTP_METHOD.TRACE, req, resp);
 	}

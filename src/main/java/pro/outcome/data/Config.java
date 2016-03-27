@@ -39,7 +39,8 @@ public class Config extends Facade<ConfigValue> {
 		}
 		else {
 			cv.setValue(value);
-		}		
+			update(cv);
+		}
 	}
 	
 	public String getEnvironment() {
