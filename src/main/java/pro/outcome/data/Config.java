@@ -32,8 +32,14 @@ public class Config extends Facade<ConfigValue> {
 	}
 	
 	public void save(String name, Object value) {
-		ConfigValue cv = new ConfigValue(name, value);
-		save(cv);
+		ConfigValue cv = getSingle(ConfigValue.model.name.toArg(name));
+		if(cv == null) {
+			cv = new ConfigValue(name, value);
+			insert(cv);
+		}
+		else {
+			cv.setValue(value);
+		}		
 	}
 	
 	public String getEnvironment() {

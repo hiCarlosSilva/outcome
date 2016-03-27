@@ -8,11 +8,12 @@ import java.util.Map;
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.Iterator;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Query;
@@ -21,7 +22,6 @@ import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
-
 import pro.outcome.util.Checker;
 import pro.outcome.util.ConstructorNotFoundException;
 import pro.outcome.util.ConstructorNotVisibleException;
@@ -50,45 +50,41 @@ public abstract class Facade<I extends Instance<?>> {
 		return _model;
 	}
 
-	// TODO separate insert and update methods
-	public void save(I i) {
-		Checker.checkNull(i, "i");
-		if(i.willInsert()) {
-			_prepareInsert(i);
+	public void insert(I i) {
+		if(i.isPersisted()) {
+			throw new IllegalArgumentException("entity has already been persisted");
 		}
-		else if(i.willUpdate()) {
-			if(!i.hasUpdates()) {
-				return;
-			}
-			_prepareUpdate(i);
-		}
-		else {
-			throw new IntegrityException();
-		}
-    	// Consistency check:
-		if(i.hasUpdates()) {
-			throw new IntegrityException();
-		}
-		// Persist:
-    	_ds.put(i.getGoogleEntity());
-    	
+		_prepareInsert(i);
+		_put(i);
 	}
-	
+
+	public void update(I i) {
+		_checkPersisted(i);
+		if(!i.hasUpdates()) {
+			return;
+		}
+		_prepareUpdate(i);
+		_put(i);
+	}
+
 	public void delete(Long id) {
 		Checker.checkNull(id, "id");
+		// TODO this is inneficient. Use a key
 		delete(get(id));
 	}
 
 	// TODO use a transaction
 	public void delete(I i) {
 		Checker.checkNull(i, "i");
+		_checkPersisted(i);
 		_logger.info("deleting {} with id {}", i.getModel().getInstanceName(), i.getId());
 		// Process dependencies:
 		for(Dependency d : getModel().getDependencies()) {
 			_logger.info("found dependency in {}", d.entity.getEntityName());
 			Facade<Instance<?>> facade = Entities.ref.getEntity(d.entity.getEntityName());
-			Iterable<Instance<?>> it = facade.list(d.foreignKey.toArg(i.getId()));
-			for(Instance<?> related : it) {
+			Iterator<Instance<?>> it = facade.iterate(d.foreignKey.toArg(i.getId()));
+			while(it.hasNext()) {
+				Instance<?> related = it.next();
 				if(d.onDelete == Field.OnDelete.CASCADE) {
 					facade.delete(related);
 				}
@@ -98,7 +94,7 @@ public abstract class Facade<I extends Instance<?>> {
 				}
 				else if(d.onDelete == Field.OnDelete.SET_NULL) {
 					related.setValue(d.foreignKey, null);
-					facade.save(related);
+					facade.update(related);
 				}
 				else {
 					throw new IntegrityException(d.onDelete);
@@ -108,6 +104,12 @@ public abstract class Facade<I extends Instance<?>> {
 		// Delete the instance:
 		_logger.info("running query: DELETE FROM {} WHERE id = {}", getClass().getSimpleName(), i.getId());
 		_ds.delete(i.getGoogleEntity().getKey());
+	}
+
+	// This method is protected to avoid making it avaiable to subclasses by default.
+	// Subclasses need to explicitly expose this method for it to be used.
+	protected void deleteAll() {
+		_ds.delete(_getKeysFrom(list()));
 	}
 
 	public I get(Long id) {
@@ -175,17 +177,36 @@ public abstract class Facade<I extends Instance<?>> {
 		return _createFrom(e);
 	}
 	
-	public Iterable<I> list(QueryArg ... params) {
-		Checker.checkEmpty(params, "params");
-		List<Filter> filters = new ArrayList<>(params.length);
-		for(QueryArg p : params) {
-			filters.add(p.toFilter());
-		}
-		Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
-		Query q = new Query(getClass().getSimpleName()).setFilter(f);
-		_logger.info("running query: {}", q);
+	public List<I> list(QueryArg ... params) {
 		// TODO what should the fetch options be?
-		return _createFrom(_ds.prepare(q).asIterable(FetchOptions.Builder.withChunkSize(10)));
+		return _createFrom(_ds.prepare(_prepareQuery(params)).asList(FetchOptions.Builder.withChunkSize(10)));
+	}
+
+	public Iterator<I> iterate(QueryArg ... params) {
+		// TODO what should the fetch options be?
+		// We may return a data.Query object that allows people to specify how many elements to retrieve
+		return new _ResultsIterator(_ds.prepare(_prepareQuery(params)).asIterator(FetchOptions.Builder.withChunkSize(10)));
+	}
+	
+	private void _checkPersisted(I i) {
+		if(!i.isPersisted()) {
+			throw new IllegalArgumentException("entity has not been persisted");
+		}
+	}
+
+	private Query _prepareQuery(QueryArg ... params) {
+		Checker.checkNullElements(params, "params");
+		Query q = new Query(getClass().getSimpleName());
+		if(params.length > 0) {
+			List<Filter> filters = new ArrayList<>(params.length);
+			for(QueryArg p : params) {
+				filters.add(p.toFilter());
+			}
+			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
+			q.setFilter(f);
+		}
+		_logger.info("running query: {}", q);
+		return q;
 	}
 
 	private void _prepareInsert(I i) {
@@ -244,6 +265,15 @@ public abstract class Facade<I extends Instance<?>> {
 		_logger.info("updating instance [{}]", i);
 	}
 	
+	private void _put(I i) {
+    	// Consistency check:
+		if(i.hasUpdates()) {
+			throw new IntegrityException();
+		}
+		// Persist:
+    	_ds.put(i.getGoogleEntity());
+	}
+
 	private void _checkUnique(Instance<?> i, Field<?> f, Object value) {
 		Query q = new Query(i.getModel().getEntityName()).setFilter(new FilterPredicate(f.getName(), FilterOperator.EQUAL, value));
 		Entity existing = _ds.prepare(q).asSingleEntity();
@@ -261,11 +291,20 @@ public abstract class Facade<I extends Instance<?>> {
 		return i;
 	}
 	
-	private Iterable<I> _createFrom(Iterable<Entity> it) {
+	private List<I> _createFrom(List<Entity> input) {
 		// TODO implement this with an interface wrapper for better performance
 		List<I> list = new ArrayList<I>();
-		for(Entity e : it) {
+		for(Entity e : input) {
 			list.add(_createFrom(e));
+		}
+		return list;
+	}
+	
+	private Iterable<Key> _getKeysFrom(Iterable<I> it) {
+		// TODO implement this with an interface wrapper for better performance
+		List<Key> list = new ArrayList<Key>();
+		for(I i : it) {
+			list.add(i.getGoogleEntity().getKey());
 		}
 		return list;
 	}
@@ -281,4 +320,25 @@ public abstract class Facade<I extends Instance<?>> {
 			throw new IntegrityException(_instanceType.getSimpleName()+"'s empty constructor must be visible");
 		}
 	}
-}
+	
+	// Converts from Iterator<Entity> to Iterator<I>:
+	private class _ResultsIterator implements Iterator<I> {
+		
+		private final Iterator<Entity> _source;
+		
+		public _ResultsIterator(Iterator<Entity> source) {
+			_source = source;
+		}
+		
+		public boolean hasNext() {
+			return _source.hasNext();
+		}
+
+		public void remove() {
+			_source.remove();
+		}
+		
+		public I next() {
+			return _createFrom(_source.next());
+		}
+	}}

@@ -142,6 +142,10 @@ public abstract class Instance<M extends Model> {
 	public boolean hasUpdates() {
 		return _updates.size() > 0;
 	}
+	
+	public boolean isPersisted() {
+		return _e.getKey().isComplete();
+	}
 
 	// For Facade:
 	Entity getGoogleEntity() {

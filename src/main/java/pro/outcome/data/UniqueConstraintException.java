@@ -8,7 +8,7 @@ package pro.outcome.data;
 public class UniqueConstraintException extends ConstraintException {
 
 	UniqueConstraintException(Field<?> field, Object value) {
-		super("unique constraint: field '"+field.getName()+"' already contains value '"+value+"'", field, value);
+		super("unique constraint: entity with '"+field.getName()+"' = '"+value+"' already exists", field, value);
 	}
 
 	private static final long serialVersionUID = 1L;
