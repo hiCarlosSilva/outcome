@@ -106,7 +106,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		Json jResponse = new Json();
 		Json jHeader = jResponse.add("header");
 		jHeader.add("status", e.getErrorCode().code);
-		jHeader.add(e.getMessage());
+		jHeader.add("message", e.getMessage());
 		if(e.getContent() != null) {
 			jResponse.add("content", e.getContent());
 		}
