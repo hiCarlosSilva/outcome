@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import pro.outcome.rest.Request.HTTP_METHOD;
-import pro.outcome.data.Config;
+import pro.outcome.data.Entities;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Reflection;
@@ -79,7 +79,7 @@ public abstract class Servlet extends HttpServlet {
 			// Check allowed origins:
 			String origin = req.getOrigin();
 			// TODO this must be an access checker
-			List<String> allowedOrigins = Config.ref.getAllowedOrigins();
+			List<String> allowedOrigins = Entities.config.getAllowedOrigins();
 			if(allowedOrigins.contains(origin)) {
 				// If it is an allowed origin, enable cross-site scripting:
 				resp.setHeader("Access-Control-Allow-Origin", origin);

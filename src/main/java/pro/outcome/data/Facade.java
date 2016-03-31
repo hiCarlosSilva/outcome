@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import pro.outcome.util.Checker;
+import pro.outcome.util.IntegrityException;
+import pro.outcome.util.Logger;
+import pro.outcome.util.Reflection;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -20,12 +24,6 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
-import pro.outcome.util.Checker;
-import pro.outcome.util.IntegrityException;
-import pro.outcome.util.Logger;
-import pro.outcome.util.Reflection;
 
 
 public abstract class Facade<I extends Instance<?>> {
@@ -46,7 +44,7 @@ public abstract class Facade<I extends Instance<?>> {
 			throw new IntegrityException();
 		}
 		_logger = Logger.get(_instanceType);
-		Entities.ref.load((Facade<Instance<?>>)this);
+		Entities.register(this);
 	}
 
 	public Model getModel() {
@@ -101,7 +99,8 @@ public abstract class Facade<I extends Instance<?>> {
 		// Process dependencies:
 		for(Dependency d : getModel().getDependencies()) {
 			_logger.info("found dependency in {}", d.entity.getEntityName());
-			Facade<Instance<?>> facade = (Facade<Instance<?>>)Entities.ref.getEntity(d.entity.getEntityName());
+			@SuppressWarnings("unchecked")
+			Facade<Instance<?>> facade = (Facade<Instance<?>>)Entities.getEntity(d.entity.getEntityName());
 			Iterator<Instance<?>> it = facade.find(d.entity.id.toArg(i.getId())).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();

@@ -11,7 +11,6 @@ import pro.outcome.util.IllegalUsageException;
 public class Config extends Facade<ConfigValue> {
 
 	// TYPE:
-	public static final Config ref = new Config();
 	public interface Properties {
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
@@ -26,9 +25,6 @@ public class Config extends Facade<ConfigValue> {
 	*/
 	
 	// INSTANCE:
-	private Config() {
-	}
-
 	public Object getValue(String name) {
 		ConfigValue value = findSingle(ConfigValue.model.name.toArg(name));
 		if(value == null) {

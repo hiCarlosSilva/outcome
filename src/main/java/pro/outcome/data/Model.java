@@ -46,7 +46,6 @@ public abstract class Model {
 		// TODO add defaults "now()"
 		timeCreated = addField(Date.class, "timeCreated", true, new NowGenerator(), Constraint.MANDATORY, Constraint.READ_ONLY);
 		timeUpdated = addField(Date.class, "timeUpdated", true, new NowGenerator(), Constraint.MANDATORY, Constraint.READ_ONLY);
-		Entities.ref.register(this);
 	}
 	
 	public String getEntityName() {

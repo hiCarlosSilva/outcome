@@ -136,11 +136,11 @@ public class Field<T> {
 		if(_foreignKey) {
 			if(_related == null) {
 				System.out.println("Type: "+_type.getSimpleName());
-				Model m = Entities.ref.getModel(_type.getSimpleName());
+				Model m = Entities.getModel(_type.getSimpleName());
 				System.out.println("Model: "+m.getEntityName());
-				Facade<?> f = (Facade<?>)Entities.ref.getEntity(m.getEntityName());
+				Facade<?> f = (Facade<?>)Entities.getEntity(m.getEntityName());
 				System.out.println("Facade: "+f);
-				_related = (Facade<?>)Entities.ref.getEntity(Entities.ref.getModel(_type.getSimpleName()).getEntityName());
+				_related = (Facade<?>)Entities.getEntity(Entities.getModel(_type.getSimpleName()).getEntityName());
 			}
 			return (T)_related.find((Long)value);
 		}
