@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 //import org.testng.Assert;
 
 
+// TODO shall we remove this?
 public abstract class UnitTester {
 
 	// TYPE:

@@ -8,11 +8,16 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Iterator;
 import pro.outcome.data.Field.Constraint;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableList;
 import pro.outcome.util.ImmutableMap;
+import pro.outcome.util.Reflection;
+import pro.outcome.util.Strings;
+import pro.outcome.util.IntegrityException;
 
 
 public abstract class Model {
@@ -24,6 +29,8 @@ public abstract class Model {
 	private final String _instanceName;
 	private final Map<String,Field<?>> _fields;
 	private final List<Dependency> _dependencies;
+	private final Set<UniqueConstraint> _uConstraints;
+	private boolean _naturalKeyAdded;
 	
 	protected Model(String entityName, String instanceName) {
 		Checker.checkEmpty(entityName, "entityName");
@@ -31,8 +38,10 @@ public abstract class Model {
 		// TODO check whether this entity has been registered
 		_entityName = entityName;
 		_instanceName = instanceName;
-		_fields = new HashMap<String,Field<?>>();
-		_dependencies = new ArrayList<Dependency>();
+		_fields = new HashMap<>();
+		_dependencies = new ArrayList<>();
+		_uConstraints = new HashSet<>();
+		_naturalKeyAdded = false;
 		id = addField(Long.class, "id", true, Constraint.MANDATORY, Constraint.AUTO_GENERATED);
 		// TODO add defaults "now()"
 		timeCreated = addField(Date.class, "timeCreated", true, new NowGenerator(), Constraint.MANDATORY, Constraint.READ_ONLY);
@@ -52,36 +61,79 @@ public abstract class Model {
 		return new ImmutableMap<String,Field<?>>(_fields);
 	}
 
-	protected <T> Field<T> addField(Class<T> cl, String name, boolean indexed, Constraint ... constraints) {
-		return addField(cl, name, indexed, (DirectGenerator<T>)null, constraints);
+	public abstract Field<?>[] getNaturalKeyFields();
+	
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, Constraint ... constraints) {
+		return _addField(c, name, indexed, (DirectGenerator<T>)null, null, constraints);
 	}
 
-	protected <T> Field<T> addField(Class<T> cl, String name, boolean indexed, T def, Constraint ... constraints) {
-		return addField(cl, name, indexed, new DirectGenerator<T>(def), constraints);
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, T def, Constraint ... constraints) {
+		return _addField(c, name, indexed, new DirectGenerator<T>(def), null, constraints);
 	}
 
-	protected <T> Field<T> addField(Class<T> cl, String name, boolean indexed, ValueGenerator<T> def, Constraint ... constraints) {
-		Checker.checkNull(cl, "cl");
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Constraint ... constraints) {
+		return _addField(c, name, indexed, def, null, constraints);
+	}
+
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, Field.OnDelete onDelete, Constraint ...constraints) {
+		return _addField(c, name, indexed, null, onDelete, constraints);
+	}
+
+	protected void addUniqueConstraint(Field<?> ... fields) {
+		_addNaturalKeyConstraint();
+		if(fields == null || fields.length==0) {
+			return;
+		}
+		UniqueConstraint uc = new UniqueConstraint(fields);
+		if(_uConstraints.contains(uc)) {
+			throw new IllegalArgumentException(Strings.expand("a unique constraint with fields {} already exists", uc));
+		}
+		_uConstraints.add(uc);
+	}
+	
+	// For Facade:
+	List<Dependency> getDependencies() {
+		return new ImmutableList<>(_dependencies);
+	}
+	
+	// For Facade:
+	Iterator<UniqueConstraint> getUniqueConstraints() {
+		_addNaturalKeyConstraint();
+		return _uConstraints.iterator();
+	}
+	
+	private <T> Field<T> _addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Field.OnDelete onDelete, Constraint ... constraints) {
+		Checker.checkNull(c, "c");
 		Checker.checkEmpty(name, "name");
 		Checker.checkNullElements(constraints, "constraints");
 		if(_fields.containsKey(name)) {
 			throw new IllegalArgumentException("field with name '"+name+"' already exists");
 		}
-		Field<T> f = new Field<T>(this, cl, name, indexed, def, constraints);
+		Field<T> f = new Field<T>(this, c, name, indexed, def, constraints);
+		if(f.isForeignKey()) {
+			if(onDelete == null) {
+				throw new IllegalArgumentException("foreign keys require an on-delete constraint");
+			}
+			// Get the foreign entity:
+			Model foreignEntity = (Model)Reflection.readField(c, "model", null);
+			if(foreignEntity == null) {
+				throw new IntegrityException();
+			}
+			// Record a delete dependency:
+			foreignEntity._dependencies.add(new Dependency(this, f, onDelete));
+		}
+		else {
+			// TODO check allowed data types
+		}
 		_fields.put(name, f);
 		return f;
 	}
 	
-	protected Field<Long> addForeignKey(String name, Model foreignEntity, Field.OnDelete onDelete, Constraint ... constraints) {
-		// TODO check that OnDelete.SET_NULL cannot exist with Constraint.READ_ONLY
-		Field<Long> foreignKey = addField(Long.class, name, true, (ValueGenerator<Long>)null, constraints);
-		foreignEntity._dependencies.add(new Dependency(this, foreignKey, onDelete));
-		return foreignKey;
-	}
-	
-	// For Facade:
-	List<Dependency> getDependencies() {
-		return new ImmutableList<Dependency>(_dependencies);
+	private void _addNaturalKeyConstraint() {
+		if(!_naturalKeyAdded) {
+			_naturalKeyAdded = true;
+			addUniqueConstraint(getNaturalKeyFields());
+		}
 	}
 	
 	private class DirectGenerator<T> implements ValueGenerator<T> {
@@ -96,7 +148,7 @@ public abstract class Model {
 			return _value;
 		}
 	}
-	
+
 	// TODO substitute for regexp generator
 	private class NowGenerator implements ValueGenerator<Date> {
 		public Date generate() { return new Date(); }

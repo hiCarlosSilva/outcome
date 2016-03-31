@@ -126,17 +126,18 @@ public class Reflection {
 		return getDeclaredMethod(false, c, name, parameterTypes);
 	}
 
-	public static Object readField(Class<?> c, Object o, String field) {
+	// TODO change order of these params to c, fieldName, o
+	public static Object readField(Class<?> c, String fieldName, Object o) {
 		Checker.checkNull(c, "c");
-		Checker.checkEmpty(field, "field");
+		Checker.checkEmpty(fieldName, "fieldName");
 		try {
-			return c.getField("ref").get(o);
+			return c.getField(fieldName).get(o);
 		}
 		catch(NoSuchFieldException nsfe) {
-			throw new IllegalUsageException(Strings.expand("could not find field {} in class {}", field, c.getName()));
+			throw new IllegalUsageException(Strings.expand("could not find field {} in class {}", fieldName, c.getName()));
 		}
 		catch (IllegalAccessException e) {
-			throw new IllegalUsageException(Strings.expand("could not access field {} in class {}", field, c.getName()));
+			throw new IllegalUsageException(Strings.expand("could not access field {} in class {}", fieldName, c.getName()));
 		}
 	}
 }

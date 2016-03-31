@@ -14,51 +14,36 @@ public class Config extends Facade<ConfigValue> {
 	public static final Config ref = new Config();
 	public interface Properties {
 		public static final String ENV = "env";
-		public static final String CHARSET = "charset";
-		public static final String SEND_HTTP_STATUS_CODES = "send-http-status-codes";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
 	}
+	// TODO remove
+	/*
+	public class Environments extends Flags {
+		public static final Flag Dev = createFlag(Environments.class, "d", "Development");
+		public static final Flag Test = createFlag("t", "Test");
+		public static final Flag Live = createFlag("l", "Live");
+	}
+	*/
 	
 	// INSTANCE:
 	private Config() {
 	}
 
 	public Object getValue(String name) {
-		ConfigValue value = getSingle(ConfigValue.model.name.toArg(name));
+		ConfigValue value = findSingle(ConfigValue.model.name.toArg(name));
 		if(value == null) {
 			return null;
 		}
 		return value.getValue();
 	}
 	
-	public void save(String name, Object value) {
-		ConfigValue cv = getSingle(ConfigValue.model.name.toArg(name));
-		if(cv == null) {
-			cv = new ConfigValue(name, value);
-			insert(cv);
-		}
-		else {
-			cv.setValue(value);
-			update(cv);
-		}
-	}
-	
 	public String getEnvironment() {
 		String e = (String)getValue(Properties.ENV);
+		//return Environments.getFlag(e);
 		if(e == null) {
 			throw new IllegalUsageException("environment config property has not been set");
 		}
 		return e;
-	}
-	
-	public String getCharset() {
-		String charset = (String)getValue(Properties.CHARSET);
-		return charset == null ? "UTF-8" : charset;
-	}
-	
-	public boolean getSendHttpStatusCodes() {
-		Boolean b = (Boolean)getValue(Properties.SEND_HTTP_STATUS_CODES);
-		return b == null ? true : b;
 	}
 	
 	public List<String> getAllowedOrigins() {

@@ -8,7 +8,6 @@ import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Cookie;
-import pro.outcome.data.Config;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Strings;
@@ -81,7 +80,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 			}
 			else {
 				try {
-					return URLDecoder.decode(qs, Config.ref.getCharset());
+					return URLDecoder.decode(qs, Servlet.CHARSET);
 				}
 				catch(UnsupportedEncodingException uee) {
 					throw new IntegrityException(uee);

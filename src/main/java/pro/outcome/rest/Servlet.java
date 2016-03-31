@@ -18,6 +18,10 @@ import pro.outcome.util.Reflection;
 
 public abstract class Servlet extends HttpServlet {
 
+	// TYPE:
+	static final String CHARSET = "UTF-8";
+
+	// INSTANCE:
 	private final List<AccessChecker> _checkers;
 	private final boolean _doGetOverridden;
 	private final boolean _doPostOverridden;
@@ -68,8 +72,8 @@ public abstract class Servlet extends HttpServlet {
 		Request req = new RequestImpl(httpReq);
 		Response resp = new ResponseImpl(httpResp);
 		try {
-			req.setCharacterEncoding(Config.ref.getCharset());
-			resp.setCharacterEncoding(Config.ref.getCharset());
+			req.setCharacterEncoding(CHARSET);
+			resp.setCharacterEncoding(CHARSET);
 			// TODO this needs to be done via config
 			resp.setContentType("application/json");
 			// Check allowed origins:

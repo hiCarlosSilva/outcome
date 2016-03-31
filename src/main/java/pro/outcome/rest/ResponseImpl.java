@@ -10,7 +10,6 @@ import java.util.HashSet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
-import pro.outcome.data.Config;
 import pro.outcome.util.Checker;
 import pro.outcome.util.Tools;
 
@@ -56,7 +55,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		Checker.checkEmpty(contentType, "contentType");
 		if(contentType.startsWith("text")) {
 			if(contentType.indexOf("charset") == -1) {
-				contentType = contentType+"; charset="+Config.ref.getCharset();
+				contentType = contentType+"; charset="+Servlet.CHARSET;
 			}
 		}
 		super.setContentType(contentType);
@@ -79,9 +78,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	public void sendError(StatusCode status, Json jContent, Object ... params) throws IOException {
 		Checker.checkNull(status, "status");
 		setContentType("application/json");
-		if(Config.ref.getSendHttpStatusCodes()) {
-			setStatus(status.httpCode);
-		}
+		setStatus(status.httpCode);
 		Json jResponse = new Json();
 		Json jHeader = jResponse.add("header");
 		jHeader.add("status", status.code);
@@ -100,9 +97,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	public void sendError(EndpointException e) throws IOException {
 		Checker.checkNull(e, "e");
 		setContentType("application/json");
-		if(Config.ref.getSendHttpStatusCodes()) {
-			setStatus(e.getErrorCode().httpCode);
-		}
+		setStatus(e.getErrorCode().httpCode);
 		Json jResponse = new Json();
 		Json jHeader = jResponse.add("header");
 		jHeader.add("status", e.getErrorCode().code);

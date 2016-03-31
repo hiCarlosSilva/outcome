@@ -8,7 +8,7 @@ import java.io.PrintStream;
 import java.util.List;
 
 import pro.outcome.util.Checker;
-import pro.outcome.util.Property;
+import pro.outcome.util.KeyValue;
 import pro.outcome.util.Strings;
 
 import java.util.ArrayList;
@@ -21,11 +21,11 @@ public class Json {
 	private static final String _INDENT = "  ";
 
 	// INSTANCE:
-	private final List<Property<Object>> _fields;
+	private final List<KeyValue<Object>> _fields;
 	private boolean _added = false;
 	
 	public Json() {
-		_fields = new ArrayList<Property<Object>>();
+		_fields = new ArrayList<KeyValue<Object>>();
 	}
 
 	public boolean isEmpty() {
@@ -37,7 +37,7 @@ public class Json {
 		Checker.checkNull(value, "value");
 		value._checkAdded();
 		value._added = true;
-		_fields.add(new Property<Object>(name, value));
+		_fields.add(new KeyValue<Object>(name, value));
 		return value;
 	}
 
@@ -46,7 +46,7 @@ public class Json {
 	}
 
 	public Json add(String name, Object value) {
-		_fields.add(new Property<Object>(name, value == null ? null : value));
+		_fields.add(new KeyValue<Object>(name, value == null ? null : value));
 		return this;
 	}
 	
@@ -59,10 +59,10 @@ public class Json {
 		return this;
 	}
 
-	private void _print(PrintWriter out, int level, Iterator<Property<Object>> it) {
+	private void _print(PrintWriter out, int level, Iterator<KeyValue<Object>> it) {
 		out.println("{");
 		while(it.hasNext()) {
-			Property<Object> p = it.next();
+			KeyValue<Object> p = it.next();
 			out.print(Strings.repeat(_INDENT, level+1));
 			out.print("\""+p.getName()+"\": ");
 			if(p.getValue() == null) {

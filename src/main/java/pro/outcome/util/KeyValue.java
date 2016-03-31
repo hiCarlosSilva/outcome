@@ -5,12 +5,12 @@
 package pro.outcome.util;
 
 
-public class Property<T> {
+public class KeyValue<T> {
 
 	private final String _name;
 	private T _value;
 	
-	public Property(String name, T value) {
+	public KeyValue(String name, T value) {
 		Checker.checkEmpty(name, "name");
 		_name = name;
 		_value = value;
@@ -24,7 +24,7 @@ public class Property<T> {
 		return _value;
 	}
 	
-	public Property<T> setValue(T value) {
+	public KeyValue<T> setValue(T value) {
 		_value = value;
 		return this;
 	}

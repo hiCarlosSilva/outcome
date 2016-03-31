@@ -5,6 +5,7 @@
 package pro.outcome.util;
 import java.util.Collection;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -123,6 +124,19 @@ public class Checker {
 			if(Strings.isEmpty(array[i])) {
 				throw new IllegalArgumentException(varName+"["+i+"] is "+(array[i]==null ? "null" : "empty"));
 			}
+		}
+		return array;
+	}
+
+	public static Object[] checkDuplicateElements(Object[] array, String varName) {
+		checkNull(array, "array");
+		Map<Object,Integer> map = new HashMap<>();
+		for(int i=0; i<array.length; i++) {
+			Integer pos = map.get(array[i]);			
+			if(pos != null) {
+				throw new IllegalArgumentException(Strings.expand("positions {} and {} are duplicate", pos, i));
+			}
+			map.put(array[i], i);
 		}
 		return array;
 	}

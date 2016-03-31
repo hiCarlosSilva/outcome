@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Entity;
@@ -23,8 +23,6 @@ import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import pro.outcome.util.Checker;
-import pro.outcome.util.ConstructorNotFoundException;
-import pro.outcome.util.ConstructorNotVisibleException;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Logger;
 import pro.outcome.util.Reflection;
@@ -41,7 +39,12 @@ public abstract class Facade<I extends Instance<?>> {
 	protected Facade() {
 		_ds = DatastoreServiceFactory.getDatastoreService();
 		_instanceType = ((Class<I>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
-		_model = _newInstance().getModel();
+		// TODO we shouldn't need this. Need to revise the class loading mechanism
+		//Reflection.load(_instanceType.getName());
+		_model = (Model)Reflection.readField(_instanceType, "model", null);
+		if(_model == null) {
+			throw new IntegrityException();
+		}
 		_logger = Logger.get(_instanceType);
 		Entities.ref.load((Facade<Instance<?>>)this);
 	}
@@ -56,21 +59,38 @@ public abstract class Facade<I extends Instance<?>> {
 		}
 		_prepareInsert(i);
 		_put(i);
+		_logger.info("persisted with id {}", i.getId());
 	}
 
-	public void update(I i) {
+	public boolean update(I i) {
 		_checkPersisted(i);
 		if(!i.hasUpdates()) {
-			return;
+			return false;
 		}
 		_prepareUpdate(i);
 		_put(i);
+		return true;
+	}
+
+	public boolean save(I i) {
+		I existing = findSingle(i.getNaturalKeyAsArg());
+		if(existing == null) {
+			insert(i);
+			return true;
+		}
+		existing.updateFrom(i);
+		boolean updated = update(existing);
+		if(!updated) {
+			// We need to do this to carry over the primary key:
+			i.setGoogleEntity(existing.getGoogleEntity());
+		}
+		return updated;
 	}
 
 	public void delete(Long id) {
 		Checker.checkNull(id, "id");
 		// TODO this is inneficient. Use a key
-		delete(get(id));
+		delete(find(id));
 	}
 
 	// TODO use a transaction
@@ -81,8 +101,8 @@ public abstract class Facade<I extends Instance<?>> {
 		// Process dependencies:
 		for(Dependency d : getModel().getDependencies()) {
 			_logger.info("found dependency in {}", d.entity.getEntityName());
-			Facade<Instance<?>> facade = Entities.ref.getEntity(d.entity.getEntityName());
-			Iterator<Instance<?>> it = facade.iterate(d.foreignKey.toArg(i.getId()));
+			Facade<Instance<?>> facade = (Facade<Instance<?>>)Entities.ref.getEntity(d.entity.getEntityName());
+			Iterator<Instance<?>> it = facade.find(d.entity.id.toArg(i.getId())).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
 				if(d.onDelete == Field.OnDelete.CASCADE) {
@@ -109,22 +129,22 @@ public abstract class Facade<I extends Instance<?>> {
 	// This method is protected to avoid making it avaiable to subclasses by default.
 	// Subclasses need to explicitly expose this method for it to be used.
 	protected void deleteAll() {
-		_ds.delete(_getKeysFrom(list()));
+		_ds.delete(_getKeysFrom(find().list()));
 	}
 
-	public I get(Long id) {
+	public I find(Long id) {
 		Checker.checkNull(id, "id");
 		try {
 			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getClass().getSimpleName(), id);
 			Entity e = _ds.get(KeyFactory.createKey(getClass().getSimpleName(), id));
-			return _createFrom(e);
+			return _createSafely(e);
 		}
 		catch(EntityNotFoundException enfe) {
 			return null;
 		}
 	}
 	
-	public I getSingle(QueryArg ... params) {
+	public I findSingle(QueryArg ... params) {
 		Checker.checkEmpty(params, "params");
 		List<Filter> filters = new ArrayList<>(params.length);
 		QueryArg idArg = null;
@@ -138,7 +158,7 @@ public abstract class Facade<I extends Instance<?>> {
 		}
 		if(idArg != null) {
 			// Retrieve entity by ID and compare parameters since querying on ID does not work:
-			I i = get((Long)idArg.getValue());
+			I i = find((Long)idArg.getValue());
 			if(i == null) {
 				return null;
 			}
@@ -161,31 +181,12 @@ public abstract class Facade<I extends Instance<?>> {
 			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
 			Query q = new Query(getClass().getSimpleName()).setFilter(f);
 			_logger.info("running query: {}", q);
-			return _createFrom(_ds.prepare(q).asSingleEntity());
+			return _createSafely(_ds.prepare(q).asSingleEntity());
 		}
-	}
-
-	// TODO also needs to cater for queries where the id is specified
-	protected I getSingle(Filter filter) {
-		Checker.checkNull(filter, "filter");
-		Query q = new Query(getClass().getSimpleName()).setFilter(filter);
-		_logger.info("running query: {}", q);
-		Entity e = _ds.prepare(q).asSingleEntity();
-		if(e == null) {
-			return null;
-		}
-		return _createFrom(e);
 	}
 	
-	public List<I> list(QueryArg ... params) {
-		// TODO what should the fetch options be?
-		return _createFrom(_ds.prepare(_prepareQuery(params)).asList(FetchOptions.Builder.withChunkSize(10)));
-	}
-
-	public Iterator<I> iterate(QueryArg ... params) {
-		// TODO what should the fetch options be?
-		// We may return a data.Query object that allows people to specify how many elements to retrieve
-		return new _ResultsIterator(_ds.prepare(_prepareQuery(params)).asIterator(FetchOptions.Builder.withChunkSize(10)));
+	public pro.outcome.data.Query<I> find(QueryArg ... params) {
+		return new pro.outcome.data.Query<I>(_ds.prepare(_prepareQuery(params)), _instanceType);
 	}
 	
 	private void _checkPersisted(I i) {
@@ -209,6 +210,7 @@ public abstract class Facade<I extends Instance<?>> {
 		return q;
 	}
 
+	// TODO embed into insert
 	private void _prepareInsert(I i) {
     	// Validate constraints:
 		// Note: the following constraints are already validated on Instance.setValue:
@@ -241,15 +243,21 @@ public abstract class Facade<I extends Instance<?>> {
 			if(f.isUnique() && value != null) {
 				// If the field is auto-generated, we already checked for uniqueness above.
 				if(!f.isAutoGenerated()) {
-					_checkUnique(i, f, value);
+					_checkUnique(i, f, value, true);
 				}
 			}
-			// All okay, set the value:
+			// All okay, set the value. Note that we will lose some updates in case
+			// one field validation fails after others have been validated successfully.
+			// However, because this is an unrecoverable exception, we don't care about that.
 			i.flush(f, value);
 		}
+		_checkUniqueConstraints(i, true);
 		_logger.info("inserting instance [{}]", i);
 	}
 	
+	// TODO we are saving updates even when the updated object has the same data as
+	// the object in the data store
+	// TODO embed into update
 	private void _prepareUpdate(I i) {
 		// Check updated fields:
 		for(Map.Entry<Field<?>, Object> entry : i.getUpdates()) {
@@ -257,10 +265,11 @@ public abstract class Facade<I extends Instance<?>> {
 			Object value = entry.getValue();
 			// On update, we only need to validate unique constraints. All others are validated on Instance.setValue.
 			if(f.isUnique() && value != null) {
-				_checkUnique(i, f, value);
+				_checkUnique(i, f, value, false);
 			}
 			i.flush(f, value);
 		}
+		_checkUniqueConstraints(i, false);
 		i.flush(i.getModel().timeUpdated, new Date());
 		_logger.info("updating instance [{}]", i);
 	}
@@ -274,30 +283,45 @@ public abstract class Facade<I extends Instance<?>> {
     	_ds.put(i.getGoogleEntity());
 	}
 
-	private void _checkUnique(Instance<?> i, Field<?> f, Object value) {
-		Query q = new Query(i.getModel().getEntityName()).setFilter(new FilterPredicate(f.getName(), FilterOperator.EQUAL, value));
-		Entity existing = _ds.prepare(q).asSingleEntity();
+	// TODO performance - we retrieve "existing" multiple times
+	private void _checkUnique(Instance<?> i, Field<?> f, Object value, boolean insert) {
+		Instance<?> existing = findSingle(new QueryArg(f, value));
 		if(existing != null) {
-			throw new UniqueConstraintException(f, value);
+			if(insert) {
+				throw new UniqueConstraintException(f, value);				
+			}
+			if(!existing.equals(i)) {
+				throw new UniqueConstraintException(f, value);
+			}
 		}
 	}
 	
-	private I _createFrom(Entity e) {
+	private void _checkUniqueConstraints(Instance<?> i, boolean insert) {
+		System.out.println("checking unique constraints for: "+i);
+		Iterator<UniqueConstraint> it = i.getModel().getUniqueConstraints();
+		System.out.println("has unique constraints: "+it.hasNext());
+		while(it.hasNext()) {
+			UniqueConstraint uc = it.next();
+			System.out.println("checking unique constraint: "+uc);
+			System.out.println("args: "+Arrays.toString(uc.toArgs(i)));
+			Instance<?> existing = findSingle(uc.toArgs(i));
+			System.out.println("entity returned: "+existing);
+			if(existing != null) {
+				if(insert) {
+					throw new UniqueConstraintException(uc);
+				}
+				if(!existing.equals(i)) {
+					throw new UniqueConstraintException(uc);
+				}
+			}
+		}
+	}
+	
+	private I _createSafely(Entity e) {
 		if(e == null) {
 			return null;
 		}
-		I i = _newInstance();
-		i.setGoogleEntity(e);
-		return i;
-	}
-	
-	private List<I> _createFrom(List<Entity> input) {
-		// TODO implement this with an interface wrapper for better performance
-		List<I> list = new ArrayList<I>();
-		for(Entity e : input) {
-			list.add(_createFrom(e));
-		}
-		return list;
+		return Instance.newFrom(_instanceType, e);
 	}
 	
 	private Iterable<Key> _getKeysFrom(Iterable<I> it) {
@@ -309,36 +333,4 @@ public abstract class Facade<I extends Instance<?>> {
 		return list;
 	}
 
-	private I _newInstance() {
-		try {
-			return Reflection.createObject(_instanceType);
-		}
-		catch(ConstructorNotFoundException cnfe) {
-			throw new IntegrityException(_instanceType.getSimpleName()+" needs to have an empty constructor");
-		}
-		catch(ConstructorNotVisibleException cnfe) {
-			throw new IntegrityException(_instanceType.getSimpleName()+"'s empty constructor must be visible");
-		}
-	}
-	
-	// Converts from Iterator<Entity> to Iterator<I>:
-	private class _ResultsIterator implements Iterator<I> {
-		
-		private final Iterator<Entity> _source;
-		
-		public _ResultsIterator(Iterator<Entity> source) {
-			_source = source;
-		}
-		
-		public boolean hasNext() {
-			return _source.hasNext();
-		}
-
-		public void remove() {
-			_source.remove();
-		}
-		
-		public I next() {
-			return _createFrom(_source.next());
-		}
-	}}
+}

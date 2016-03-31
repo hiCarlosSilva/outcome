@@ -10,15 +10,14 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Query;
-
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.Logger;
 import pro.outcome.util.Reflection;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Query;
 
 
 public class Entities {
@@ -28,7 +27,8 @@ public class Entities {
 	
 	// INSTANCE:
 	private final Map<String,Model> _models;
-	private final Map<String,Facade<Instance<?>>> _facades;
+	// TODO private
+	public final Map<String,Facade<? extends Instance<?>>> _facades;
 	private final Set<Package> _loadedPackages;
 	private final List<String> _toLoad;
 	private final Logger _logger;
@@ -36,13 +36,14 @@ public class Entities {
 
 	private Entities() {
 		_models = new HashMap<String,Model>();
-		_facades = new HashMap<String,Facade<Instance<?>>>();
+		_facades = new HashMap<>();
 		_loadedPackages = new HashSet<Package>();
 		_logger = Logger.get(getClass());
 		_toLoad = new ArrayList<String>();
 		_readDatabase = false;
 	}
 	
+	// TODO consider doing 2: getModelForEntity, getModelForInstance
 	public Model getModel(String name) {
 		Checker.checkEmpty(name, "name");
 		return _models.get(name);
@@ -52,43 +53,44 @@ public class Entities {
 		return new ImmutableMap<String,Model>(_models);
 	}
 	
-	public Facade<Instance<?>> getEntity(String name) {
+	public Facade<? extends Instance<?>> getEntity(String name) {
 		Checker.checkEmpty(name, "name");
 		return _facades.get(name);
 	}
 	
-	public ImmutableMap<String,Facade<Instance<?>>> getEntities() {
-		return new ImmutableMap<String,Facade<Instance<?>>>(_facades);
+	public ImmutableMap<String,Facade<? extends Instance<?>>> getEntities() {
+		return new ImmutableMap<String,Facade<? extends Instance<?>>>(_facades);
 	}
 
 	// For Model:
 	void register(Model model) {
 		Checker.checkNull(model, "model");
-		if(_models.containsKey(model.getEntityName())) {
-			throw new IllegalArgumentException("model for entity '"+model.getEntityName()+"' has already been registered");
+		if(_models.containsKey(model.getInstanceName())) {
+			throw new IllegalArgumentException("model for entity instance '"+model.getInstanceName()+"' has already been registered");
 		}
-		_models.put(model.getEntityName(), model);
+		_models.put(model.getInstanceName(), model);
 	}
 
 	// For Facade:
 	@SuppressWarnings("unchecked")
-	void load(Facade<Instance<?>> f) {
+	void load(Facade<? extends Instance<?>> f) {
 		Checker.checkNull(f, "f");
 		// Load entities from GAE if necessary:
 		if(!_readDatabase) {
 			_logger.info("reading entities stored in the database");
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService(); 
 			Query q = new Query(com.google.appengine.api.datastore.Entities.KIND_METADATA_KIND);
-			for (Entity e : ds.prepare(q).asIterable()) {
+			for(Entity e : ds.prepare(q).asIterable()) {
 				_toLoad.add(e.getKey().getName());
 			}
 			_readDatabase = true;
 		}
 		// This may be the first time the entity gets loaded, if it wasn't stored yet:
-		String eName = f.getModel().getEntityName();
-		if(!_facades.containsKey(eName)) {
-			_facades.put(eName, f);
-		}
+		// TODO remove this
+		//String eName = f.getModel().getEntityName();
+		//if(!_facades.containsKey(eName)) {
+		//	_facades.put(eName, f);
+		//}
 		// Check if this facade's package has already been loaded:
 		Package p = f.getClass().getPackage();
 		if(_loadedPackages.contains(p)) {
@@ -110,7 +112,7 @@ public class Entities {
 					_facades.put(name, f);
 				}
 				else {
-					_facades.put(name, (Facade<Instance<?>>)Reflection.readField(c, null, "ref"));
+					_facades.put(name, (Facade<Instance<?>>)Reflection.readField(c, "ref", null));
 				}
 				_logger.info("loaded entity {}", c.getCanonicalName());
 			}

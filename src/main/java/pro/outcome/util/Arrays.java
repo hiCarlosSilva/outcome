@@ -3,10 +3,12 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.util;
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.lang.reflect.Array;
 
 
@@ -174,4 +176,34 @@ public class Arrays {
 		copy(from, 0, to, 0);
 	}
 
+	public static String toString(Object[] array) {
+		Checker.checkNull(array, "array");
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		for(int i=0; i<array.length; i++) {
+			sb.append(array[i]);
+			if(i < array.length-1) {
+				sb.append(", ");
+			}
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
+	// TODO this implementation does not consider duplicates
+	public static <T> boolean equalsIgnoreOrder(T[] a, T[] b) {
+		Checker.checkNull(a, "a");
+		Checker.checkNull(b, "b");
+		if(a.length != b.length) {
+			return false;
+		}
+		Set<T> set = new HashSet<>();
+		set.addAll(java.util.Arrays.asList(a));
+		for(int i=0; i<b.length; i++) {
+			if(!set.remove(b[i])) {
+				return false;
+			}
+		}
+		return set.isEmpty();
+	}
 }

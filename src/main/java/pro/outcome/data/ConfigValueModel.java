@@ -14,6 +14,10 @@ public class ConfigValueModel extends Model {
 	public ConfigValueModel() {
 		super("Config", "ConfigValue");
 		name = addField(String.class, "name", true, Constraint.MANDATORY, Constraint.UNIQUE, Constraint.READ_ONLY);
-		value = addField(Object.class, "value", false, Constraint.MANDATORY);
+		value = addField(Object.class, "value", false, (Object)null, Constraint.MANDATORY);
+	}
+	
+	public Field<?>[] getNaturalKeyFields() {
+		return new Field<?>[] { name };
 	}
 }

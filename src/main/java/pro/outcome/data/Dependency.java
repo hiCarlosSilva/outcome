@@ -8,16 +8,16 @@ package pro.outcome.data;
 class Dependency {
 
 	public final Model entity;
-	public final Field<Long> foreignKey;
+	public final Field<?> foreignKey;
 	public final Field.OnDelete onDelete;
 
-	public Dependency(Model entity, Field<Long> foreignKey, Field.OnDelete onDelete) {
+	public Dependency(Model entity, Field<?> foreignKey, Field.OnDelete onDelete) {
 		this.entity = entity;
 		this.foreignKey = foreignKey;
 		this.onDelete = onDelete;
 	}
 	
 	public String toString() {
-		return "Dependency:"+foreignKey.getFullName();
+		return "Dependency: "+foreignKey.getFullName();
 	}
 }

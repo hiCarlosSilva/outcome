@@ -63,7 +63,6 @@ public class Logger {
 		_log(Level.SEVERE, t, message, params);
 	}
 
-	//System.out.println(Thread.currentThread().getStackTrace()[2].getMethodName());
 	private void _log(Level level, Throwable t, String message, Object[] params) {
 		if(!_logger.isLoggable(level)) {
 			return;
