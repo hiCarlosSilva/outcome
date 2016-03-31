@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import pro.outcome.util.IllegalUsageException;
 
 
-public class Config extends Facade<ConfigValue> {
+public class Config extends Entity<ConfigValue> {
 
 	// TYPE:
 	public interface Properties {

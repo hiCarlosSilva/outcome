@@ -14,17 +14,17 @@ public abstract class Entities {
 
 	// TYPE:
 	private static final Map<String,Model> _models = new HashMap<>();
-	private static final Map<String,Facade<?>> _entities = new HashMap<>();
+	private static final Map<String,Entity<?>> _entities = new HashMap<>();
 	// Entities for this package:
 	public static final Config config = new Config();
 	
-	public static Facade<?> getEntity(String name) {
+	public static Entity<?> getEntity(String name) {
 		Checker.checkEmpty(name);
 		return _entities.get(name);
 	}
 
-	public static ImmutableMap<String,Facade<? extends Instance<?>>> getEntities() {
-		return new ImmutableMap<String,Facade<? extends Instance<?>>>(_entities);
+	public static ImmutableMap<String,Entity<? extends Instance<?>>> getEntities() {
+		return new ImmutableMap<String,Entity<? extends Instance<?>>>(_entities);
 	}
 
 	public static Model getModel(String name) {
@@ -37,7 +37,7 @@ public abstract class Entities {
 	}
 
 	// For Facade:
-	static void register(Facade<?> f) {
+	static void register(Entity<?> f) {
 		Model m = f.getModel();
 		if(_entities.containsKey(m.getEntityName())) {
 			throw new IllegalArgumentException(m.getEntityName()+": entity has already been registered");

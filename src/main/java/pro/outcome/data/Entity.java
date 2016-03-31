@@ -18,7 +18,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilter;
@@ -26,7 +25,7 @@ import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 
 
-public abstract class Facade<I extends Instance<?>> {
+public abstract class Entity<I extends Instance<?>> {
 
 	private final DatastoreService _ds;
 	private final Class<I> _instanceType;
@@ -34,7 +33,7 @@ public abstract class Facade<I extends Instance<?>> {
 	private final Logger _logger;
 
 	@SuppressWarnings("unchecked")
-	protected Facade() {
+	protected Entity() {
 		_ds = DatastoreServiceFactory.getDatastoreService();
 		_instanceType = ((Class<I>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
 		// TODO we shouldn't need this. Need to revise the class loading mechanism
@@ -100,7 +99,7 @@ public abstract class Facade<I extends Instance<?>> {
 		for(Dependency d : getModel().getDependencies()) {
 			_logger.info("found dependency in {}", d.entity.getEntityName());
 			@SuppressWarnings("unchecked")
-			Facade<Instance<?>> facade = (Facade<Instance<?>>)Entities.getEntity(d.entity.getEntityName());
+			Entity<Instance<?>> facade = (Entity<Instance<?>>)Entities.getEntity(d.entity.getEntityName());
 			Iterator<Instance<?>> it = facade.find(d.entity.id.toArg(i.getId())).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
@@ -135,7 +134,7 @@ public abstract class Facade<I extends Instance<?>> {
 		Checker.checkNull(id);
 		try {
 			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getClass().getSimpleName(), id);
-			Entity e = _ds.get(KeyFactory.createKey(getClass().getSimpleName(), id));
+			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getClass().getSimpleName(), id));
 			return _createSafely(e);
 		}
 		catch(EntityNotFoundException enfe) {
@@ -316,7 +315,7 @@ public abstract class Facade<I extends Instance<?>> {
 		}
 	}
 	
-	private I _createSafely(Entity e) {
+	private I _createSafely(com.google.appengine.api.datastore.Entity e) {
 		if(e == null) {
 			return null;
 		}
