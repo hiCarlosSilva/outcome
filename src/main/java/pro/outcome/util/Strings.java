@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public class Strings {
 
-	private static final String _S = "s";
 	private static String _EXPANSION_REGEX = "\\{\\}";
 
 	private Strings() {
@@ -34,7 +33,7 @@ public class Strings {
 	}
 
 	public static boolean isUpperCase(String s) {
-		Checker.checkNull(s, _S);
+		Checker.checkNull(s);
 		for(int i=0; i<s.length(); i++) {
 			if(Character.isLowerCase(s.charAt(i))) {
 				return false;
@@ -44,7 +43,7 @@ public class Strings {
 	}
 
 	public static boolean isLowerCase(String s) {
-		Checker.checkNull(s, _S);
+		Checker.checkNull(s);
 		for(int i=0; i<s.length(); i++) {
 			if(Character.isUpperCase(s.charAt(i))) {
 				return false;
@@ -54,7 +53,7 @@ public class Strings {
 	}
 	
 	public static boolean isNumber(String s) {
-		Checker.checkEmpty(s, _S);
+		Checker.checkEmpty(s);
 		try {
 			new Double(s);
 			return true;
@@ -65,7 +64,7 @@ public class Strings {
 	}
 
 	public static boolean isInteger(String s) {
-		Checker.checkEmpty(s, _S);
+		Checker.checkEmpty(s);
 		try {
 			new Integer(s);
 			return true;
@@ -81,7 +80,7 @@ public class Strings {
 	// Note: we need to escape the slash character itself (\) otherwise when un-escaping we will
 	// miss the character just next to it (i.e. if(charAt(i)=='\\') skip;)
 	public static String addSlashes(String s) {
-		Checker.checkNull(s, _S);
+		Checker.checkNull(s);
 		StringBuilder b = new StringBuilder(s);
 		for(int i=0; i<b.length(); i++) {
 			if(b.charAt(i) == '"' || b.charAt(i) == '\'' || b.charAt(i) == '\\') {
@@ -97,8 +96,8 @@ public class Strings {
 	// Note: we need to espace the slash character itself (\) otherwise when unescaping we will
 	// miss the character just next to it (i.e. if(charAt(i)=='\\') skip;)
 	public static String escape(String s, String tokens) {
-		Checker.checkNull(s, _S);
-		Checker.checkEmpty(tokens, "tokens");
+		Checker.checkNull(s);
+		Checker.checkEmpty(tokens);
 		tokens = '\\' + tokens;
 		StringBuilder sb = new StringBuilder(s);
 		for(int i=0; i<sb.length(); i++) {
@@ -116,8 +115,8 @@ public class Strings {
 	// TODO document: this is to be used with strings that have been escaped with "escape"
 	// and both splits and unescapes the characters. It does not use regular exprs
 	public static String[] splitAndUnescape(String s, String tokens) {
-		Checker.checkNull(s, _S);
-		Checker.checkEmpty(tokens, "tokens");
+		Checker.checkNull(s);
+		Checker.checkEmpty(tokens);
 		List<String> rList = new ArrayList<String>();
 		StringBuilder sb = new StringBuilder();
 		Main:
@@ -150,7 +149,7 @@ public class Strings {
 	}
 	
 	public static String unescape(String s) {
-		Checker.checkNull(s, _S);
+		Checker.checkNull(s);
 		final StringBuilder sb = new StringBuilder();
 		for(int i=0; i<s.length(); i++) {
 			if(s.charAt(i) == '\\') {
@@ -177,8 +176,8 @@ public class Strings {
 	}
 
 	public static String valueOf(Integer i, int length) {
-		Checker.checkNull(i, "i");
-		Checker.checkIndex(length, "length");
+		Checker.checkNull(i);
+		Checker.checkIndex(length);
 		StringBuilder result = new StringBuilder(i.toString());
 		if(result.length() < length) {
 			for(int j=result.length(); j<length; j++) {
@@ -193,9 +192,9 @@ public class Strings {
 	}
 
 	public static String valueOf(Double d, int llength, int rlength) {
-		Checker.checkNull(d, "d");
-		Checker.checkIndex(llength, "llength");
-		Checker.checkIndex(rlength, "rlength");
+		Checker.checkNull(d);
+		Checker.checkIndex(llength);
+		Checker.checkIndex(rlength);
 		String number = d.toString();
 		StringBuilder result = new StringBuilder(number);
 		String[] array = number.split("[.]");
@@ -220,7 +219,7 @@ public class Strings {
 	}
 
 	public static int countOccurrences(String s, char toCount) {
-		Checker.checkNull(s, _S);
+		Checker.checkNull(s);
 		int count = 0;
 		for(int i=0; i<s.length(); i++) {
 			if(s.charAt(i) == toCount) {
@@ -231,8 +230,8 @@ public class Strings {
 	}
 	
 	public static int countOccurrences(String s, String toCount) {
-		Checker.checkNull(s, _S);
-		Checker.checkNull(toCount, "toCount");
+		Checker.checkNull(s);
+		Checker.checkNull(toCount);
 		int count = 0;
 		StringBuilder sb = new StringBuilder(s);
 		while(true) {
@@ -249,8 +248,8 @@ public class Strings {
 	}
 	
 	public static String repeat(String s, int numTimes) {
-		Checker.checkNull(s, _S);
-		Checker.checkMinValue(numTimes, 1, "numTimes");
+		Checker.checkNull(s);
+		Checker.checkMinValue(numTimes, 1);
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<numTimes; i++) {
 			sb.append(s);
@@ -259,8 +258,8 @@ public class Strings {
 	}
 
 	public static String replaceAll(String s, String toReplace, String replacement) {
-		Checker.checkEmpty(s, _S);
-		Checker.checkEmpty(toReplace, "toReplace");
+		Checker.checkEmpty(s);
+		Checker.checkEmpty(toReplace);
 		replacement = replacement == null  ? Constants.EMPTY : replacement;
 		StringBuilder sb = new StringBuilder(s);
 		for(int index = sb.indexOf(toReplace); index != -1; index = sb.indexOf(toReplace, index+replacement.length())) {
@@ -270,7 +269,7 @@ public class Strings {
 	}
 
 	public static String eliminateRepeatedChars(String s) {
-		Checker.checkEmpty(s, _S);
+		Checker.checkEmpty(s);
 		Set<Character> tmp = new HashSet<Character>();
 		for(int i=0; i<s.length(); i++) {
 			tmp.add(s.charAt(i));
@@ -297,8 +296,8 @@ public class Strings {
 	}
 
 	public static int findIgnoreCase(String s, String[] in) {
-		Checker.checkNull(s, "s");
-		Checker.checkNull(in, "in");
+		Checker.checkNull(s);
+		Checker.checkNull(in);
 		for(int i=0; i<in.length; i++) {
 			if(s.equalsIgnoreCase(in[i])) {
 				return i;
@@ -309,7 +308,7 @@ public class Strings {
 
 	//TODO document
 	public static Boolean toBoolean(String s, boolean ignoreCase) {
-		Checker.checkEmpty(s, "s");
+		Checker.checkEmpty(s);
 		if(equals(s, Constants.TRUE, ignoreCase)) {
 			return Boolean.TRUE;
 		}
@@ -326,8 +325,8 @@ public class Strings {
 	}
 
 	public static boolean equals(String a, String b, boolean ignoresCase) {
-		Checker.checkNull(a, "a");
-		Checker.checkNull(b, "b");
+		Checker.checkNull(a);
+		Checker.checkNull(b);
 		if(ignoresCase) {
 			return a.equalsIgnoreCase(b);
 		}
@@ -341,17 +340,17 @@ public class Strings {
 	}
 
 	public static String toHTML(String source) {
-		Checker.checkNull(source, "source");
+		Checker.checkNull(source);
 		return HtmlFormatter.format(source);
 	}
 
 	public static String toSafeString(String source) {
-		Checker.checkNull(source, "source");
+		Checker.checkNull(source);
 		return AsciiFormatter.format(source);
 	}
 	
 	public static String expand(String s, Object ... params) {
-		Checker.checkEmpty(s, _S);
+		Checker.checkEmpty(s);
 		for(Object p : params) {
 			if(p == null) {
 				p = Constants.NULL_LC;

@@ -86,8 +86,8 @@ public abstract class UnitTester {
 	*/
 	
 	protected void showObjectProperty(Object obj, String methodName) {
-		Checker.checkNull(obj, "obj");
-		Checker.checkEmpty(methodName, "methodName");
+		Checker.checkNull(obj);
+		Checker.checkEmpty(methodName);
 		try {
 			Class<?> c = obj.getClass();
 			Method m = c.getMethod(methodName);
@@ -132,7 +132,7 @@ public abstract class UnitTester {
 	}
 
 	protected void printArray(Object[] array) {
-		Checker.checkNull(array, "array");
+		Checker.checkNull(array);
 		for(int i=0; i<array.length; i++) {
 			println("["+i+"]: "+array[i]);
 		}
@@ -167,7 +167,7 @@ public abstract class UnitTester {
 	}
 
 	protected void printArrayInLine(Object[] array) {
-		Checker.checkNull(array, "array");
+		Checker.checkNull(array);
 		for(int i=0; i<array.length - 1; i++) {
 			print(array[i]);
 			print(", ");
@@ -204,14 +204,14 @@ public abstract class UnitTester {
 	}
 
 	protected void printIterator(Iterator<?> it) {
-		Checker.checkNull(it, "it");
+		Checker.checkNull(it);
 		for(int i=0; it.hasNext(); i++) {
 			println("["+i+"]: "+it.next());
 		}
 	}
 
 	protected void printIteratorInLine(Iterator<?> it) {
-		Checker.checkNull(it, "it");
+		Checker.checkNull(it);
 		while(it.hasNext()) {
 			print(it.next());
 			if(it.hasNext()) {

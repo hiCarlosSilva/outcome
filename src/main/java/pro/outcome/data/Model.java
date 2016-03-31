@@ -33,8 +33,8 @@ public abstract class Model {
 	private boolean _naturalKeyAdded;
 	
 	protected Model(String entityName, String instanceName) {
-		Checker.checkEmpty(entityName, "entityName");
-		Checker.checkEmpty(instanceName, "instanceName");
+		Checker.checkEmpty(entityName);
+		Checker.checkEmpty(instanceName);
 		// TODO check whether this entity has been registered
 		_entityName = entityName;
 		_instanceName = instanceName;
@@ -103,9 +103,9 @@ public abstract class Model {
 	}
 	
 	private <T> Field<T> _addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Field.OnDelete onDelete, Constraint ... constraints) {
-		Checker.checkNull(c, "c");
-		Checker.checkEmpty(name, "name");
-		Checker.checkNullElements(constraints, "constraints");
+		Checker.checkNull(c);
+		Checker.checkEmpty(name);
+		Checker.checkNullElements(constraints);
 		if(_fields.containsKey(name)) {
 			throw new IllegalArgumentException("field with name '"+name+"' already exists");
 		}

@@ -11,7 +11,7 @@ public class KeyValue<T> {
 	private T _value;
 	
 	public KeyValue(String name, T value) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		_name = name;
 		_value = value;
 	}

@@ -9,7 +9,7 @@ package pro.outcome.util;
 class HtmlFormatter {
 
 	public static String format(String source) {
-		Checker.checkNull(source, "source");
+		Checker.checkNull(source);
 		StringBuilder sb = new StringBuilder();
 		int nbspCount = 0;
 		for(int i=0; i<source.length(); i++) {

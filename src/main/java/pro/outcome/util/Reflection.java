@@ -13,9 +13,9 @@ public class Reflection {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T createObject(Class<T> c, Class<?>[] params, Object[] args) {
-		Checker.checkNull(c, "c");
-		Checker.checkNullElements(params, "params");
-		Checker.checkNull(args, "args");
+		Checker.checkNull(c);
+		Checker.checkNullElements(params);
+		Checker.checkNull(args);
 		// Check if the class is an interface:
 		int modifiers = c.getModifiers();
 		if(Modifier.isInterface(modifiers)) {
@@ -76,8 +76,8 @@ public class Reflection {
 	}
 
 	public static <T> T createObject(Class<T> c, Object ... args) {
-		Checker.checkNull(c, "c");
-		Checker.checkNullElements(args, "args");
+		Checker.checkNull(c);
+		Checker.checkNullElements(args);
 		Class<?>[] params = new Class[args.length];
 		for(int i=0; i<params.length; i++) {
 			params[i] = args[i].getClass();
@@ -90,7 +90,7 @@ public class Reflection {
 	}
 	
 	public static Class<?> load(boolean lenient, String className) {
-		Checker.checkEmpty(className, "className");
+		Checker.checkEmpty(className);
 		try {
 			return Class.forName(className);
 		}
@@ -109,8 +109,8 @@ public class Reflection {
 	}
 	
 	public static Method getDeclaredMethod(boolean lenient, Class<?> c, String name, Class<?> ... parameterTypes) {
-		Checker.checkNull(c, "c");
-		Checker.checkEmpty(name, "name");
+		Checker.checkNull(c);
+		Checker.checkEmpty(name);
 		try {
 			return c.getDeclaredMethod(name, parameterTypes);
 		}
@@ -128,8 +128,8 @@ public class Reflection {
 
 	// TODO change order of these params to c, fieldName, o
 	public static Object readField(Class<?> c, String fieldName, Object o) {
-		Checker.checkNull(c, "c");
-		Checker.checkEmpty(fieldName, "fieldName");
+		Checker.checkNull(c);
+		Checker.checkEmpty(fieldName);
 		try {
 			return c.getField(fieldName).get(o);
 		}

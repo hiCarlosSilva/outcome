@@ -15,7 +15,7 @@ public class Logger {
 	private static Map<Class<?>, Logger> _cache = new HashMap<Class<?>, Logger>();
 
 	public static Logger get(Class<?> c) {
-		Checker.checkNull(c, "c");
+		Checker.checkNull(c);
 		Logger l = _cache.get(c);
 		if(l != null) {
 			return l;
@@ -26,7 +26,7 @@ public class Logger {
 	}
 	
 	public static void setLevel(Level level) {
-		Checker.checkNull(level, "level");
+		Checker.checkNull(level);
 		Checker.checkIllegalValue(level, "level", Level.OFF, Level.INFO, Level.WARNING, Level.SEVERE);
 		// Set the level across already registered loggers:
 		for(Logger l : _cache.values()) {

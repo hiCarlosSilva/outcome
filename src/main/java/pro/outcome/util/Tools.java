@@ -28,8 +28,8 @@ public class Tools {
 	}
 	
 	public static boolean contains(Collection<?> c, Object o, Comparator<Object> comparator) {
-		Checker.checkNull(c, "c");
-		Checker.checkNull(comparator, "comparator");
+		Checker.checkNull(c);
+		Checker.checkNull(comparator);
 		for(Object element : c) {
 			if(comparator.compare(element, o) == 0) {
 				return true;
@@ -39,7 +39,7 @@ public class Tools {
 	}
 	
 	public static Locale getLocale(String locale) {
-		Checker.checkEmpty(locale, "locale");
+		Checker.checkEmpty(locale);
 		String[] array = locale.split("[_]");
 		if(array.length != 2) {
 			throw new IllegalArgumentException("wrong format for locale: "+locale);
@@ -48,8 +48,8 @@ public class Tools {
 	}
 
 	public static Locale getLocale(String language, String country) {
-		Checker.checkEmpty(language, "language");
-		Checker.checkEmpty(country, "country");
+		Checker.checkEmpty(language);
+		Checker.checkEmpty(country);
 		Locale l = new Locale(language, country);
 		if(Arrays.find(l, Locale.getAvailableLocales()) == -1) {
 			throw new IllegalArgumentException("locale '"+language+"_"+country+"' is not supported");
@@ -59,7 +59,7 @@ public class Tools {
 
 	// TODO document
 	public static byte[] parseInetAddress(String address) {
-		Checker.checkEmpty(address, "address");
+		Checker.checkEmpty(address);
 		String[] array = address.split("\\.");
 		if(array.length != 4) {
 			throw new IllegalArgumentException("illegal IP address: "+address);

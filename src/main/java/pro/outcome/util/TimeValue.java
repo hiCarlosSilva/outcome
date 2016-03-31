@@ -23,13 +23,13 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 	private final long _milliseconds;
 	
 	public TimeValue(Date date) {
-		Checker.checkNull(date, "date");
+		Checker.checkNull(date);
 		_milliseconds = date.getTime();
 	}
 	
 	public TimeValue(long value, MEASURE measure) {
-		Checker.checkMinValue(value, 0, "value");
-		Checker.checkNull(measure, "measure");
+		Checker.checkMinValue(value, 0);
+		Checker.checkNull(measure);
 		switch(measure) {
 			case MILLISECONDS:
 				_milliseconds = value;
@@ -52,7 +52,7 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 	}
 	
 	public TimeValue(String value) {
-		Checker.checkEmpty(value, "value");
+		Checker.checkEmpty(value);
 		// Parse input String:
 		value = value.replaceAll(" ", "");
 		value = value.replaceAll("\t", "");
@@ -92,7 +92,7 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 	}
 
 	public long getAs(MEASURE measure) {
-		Checker.checkNull(measure, "measure");
+		Checker.checkNull(measure);
 		if(measure == MEASURE.MILLISECONDS) {
 			return _milliseconds;
 		}
@@ -163,7 +163,7 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 	}
 
 	public int compareTo(TimeValue t) {
-		Checker.checkNull(t, "t");
+		Checker.checkNull(t);
 		long result = _milliseconds - t._milliseconds;
 		return result<0 ? -1 : 1;
 	}

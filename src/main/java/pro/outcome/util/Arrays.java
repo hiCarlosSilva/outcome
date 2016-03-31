@@ -20,13 +20,13 @@ public class Arrays {
 	}
 
 	public static <T> T last(T[] array) {
-		Checker.checkEmpty(array, "array");
+		Checker.checkEmpty(array);
 		return array[array.length-1];
 	}
 
 	public static int find(Object o, Object[] in) {
-		Checker.checkNull(o, "o");
-		Checker.checkNull(in, "in");
+		Checker.checkNull(o);
+		Checker.checkNull(in);
 		for(int i=0; i<in.length; i++) {
 			if(o.equals(in[i])) {
 				return i;
@@ -40,8 +40,8 @@ public class Arrays {
 	}
 
 	public static Object[] toArrayOf(Class<?> c, Object[] array) {
-		Checker.checkNull(c, "c");
-		Checker.checkNull(array, "array");
+		Checker.checkNull(c);
+		Checker.checkNull(array);
 		Object[] result = (Object[])Array.newInstance(array.getClass().getComponentType(), array.length);
 		for(int i=0; i<array.length; i++) {
 			result[i] = array[i];
@@ -50,8 +50,8 @@ public class Arrays {
 	}
 	
 	public static Object[] toArrayOf(java.lang.Class<?> c, Iterator<?> it) {
-		Checker.checkNull(c, "c");
-		Checker.checkNull(it, "it");
+		Checker.checkNull(c);
+		Checker.checkNull(it);
 		LinkedList<Object> list = new LinkedList<Object>();
 		while(it.hasNext()) {
 			list.add(it.next());
@@ -60,7 +60,7 @@ public class Arrays {
 	}
 
 	public static Object[] toArrayOf(java.lang.Class<?> c, Iterable<?> it) {
-		Checker.checkNull(it, "col");
+		Checker.checkNull(it);
 		return toArrayOf(c, it.iterator());
 	}
 
@@ -121,8 +121,8 @@ public class Arrays {
 	}
 
 	public static <T> T[] concat(T[] array1, T[] array2) {
-		Checker.checkNull(array1, "array1");
-		Checker.checkNull(array2, "array2");
+		Checker.checkNull(array1);
+		Checker.checkNull(array2);
 		List<T> result = new ArrayList<T>();
 		for(T elem : array1) {
 			result.add(elem);
@@ -154,11 +154,11 @@ public class Arrays {
 	}
 
 	public static <T> void copy(T[] from, int fromIndex, T[] to, int toIndex, int length) {
-		Checker.checkNull(to, "to");
-		Checker.checkNull(from, "from");
-		Checker.checkIndex(toIndex, "toIndex");
-		Checker.checkIndex(fromIndex, "fromIndex");
-		Checker.checkIndex(length, "length");
+		Checker.checkNull(to);
+		Checker.checkNull(from);
+		Checker.checkIndex(toIndex);
+		Checker.checkIndex(fromIndex);
+		Checker.checkIndex(length);
 		if(toIndex+length > to.length) {
 			throw new IndexOutOfBoundsException("index: "+(toIndex+length)+"; array length: "+to.length);
 		}
@@ -177,7 +177,7 @@ public class Arrays {
 	}
 
 	public static String toString(Object[] array) {
-		Checker.checkNull(array, "array");
+		Checker.checkNull(array);
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for(int i=0; i<array.length; i++) {
@@ -192,8 +192,8 @@ public class Arrays {
 
 	// TODO this implementation does not consider duplicates
 	public static <T> boolean equalsIgnoreOrder(T[] a, T[] b) {
-		Checker.checkNull(a, "a");
-		Checker.checkNull(b, "b");
+		Checker.checkNull(a);
+		Checker.checkNull(b);
 		if(a.length != b.length) {
 			return false;
 		}

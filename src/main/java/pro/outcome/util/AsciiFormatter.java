@@ -12,7 +12,7 @@ class AsciiFormatter {
 	private static String _REPLACEMENT_CHAR = "_";
 	
 	public static String format(String source) {
-		Checker.checkNull(source, "source");
+		Checker.checkNull(source);
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<source.length(); i++) {
 			// find special (switchable) character:

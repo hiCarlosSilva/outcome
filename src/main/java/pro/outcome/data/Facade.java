@@ -88,14 +88,14 @@ public abstract class Facade<I extends Instance<?>> {
 	}
 
 	public void delete(Long id) {
-		Checker.checkNull(id, "id");
+		Checker.checkNull(id);
 		// TODO this is inneficient. Use a key
 		delete(find(id));
 	}
 
 	// TODO use a transaction
 	public void delete(I i) {
-		Checker.checkNull(i, "i");
+		Checker.checkNull(i);
 		_checkPersisted(i);
 		_logger.info("deleting {} with id {}", i.getModel().getInstanceName(), i.getId());
 		// Process dependencies:
@@ -133,7 +133,7 @@ public abstract class Facade<I extends Instance<?>> {
 	}
 
 	public I find(Long id) {
-		Checker.checkNull(id, "id");
+		Checker.checkNull(id);
 		try {
 			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getClass().getSimpleName(), id);
 			Entity e = _ds.get(KeyFactory.createKey(getClass().getSimpleName(), id));
@@ -145,7 +145,7 @@ public abstract class Facade<I extends Instance<?>> {
 	}
 	
 	public I findSingle(QueryArg ... params) {
-		Checker.checkEmpty(params, "params");
+		Checker.checkEmpty(params);
 		List<Filter> filters = new ArrayList<>(params.length);
 		QueryArg idArg = null;
 		for(QueryArg p : params) {
@@ -196,7 +196,7 @@ public abstract class Facade<I extends Instance<?>> {
 	}
 
 	private Query _prepareQuery(QueryArg ... params) {
-		Checker.checkNullElements(params, "params");
+		Checker.checkNullElements(params);
 		Query q = new Query(getClass().getSimpleName());
 		if(params.length > 0) {
 			List<Filter> filters = new ArrayList<>(params.length);

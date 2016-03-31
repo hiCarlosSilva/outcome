@@ -33,8 +33,8 @@ public class Json {
 	}
 
 	public Json add(String name, Json value) {
-		Checker.checkEmpty(name, "name");
-		Checker.checkNull(value, "value");
+		Checker.checkEmpty(name);
+		Checker.checkNull(value);
 		value._checkAdded();
 		value._added = true;
 		_fields.add(new KeyValue<Object>(name, value));

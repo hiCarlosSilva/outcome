@@ -64,7 +64,7 @@ public abstract class Servlet extends HttpServlet {
 	}
 
 	protected void addAccessChecker(AccessChecker checker) {
-		Checker.checkNull(checker, "checker");
+		Checker.checkNull(checker);
 		_checkers.add(checker);
 	}
 

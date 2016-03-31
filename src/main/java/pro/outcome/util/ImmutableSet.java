@@ -13,7 +13,7 @@ public class ImmutableSet<T> extends AbstractSet<T> {
 	private final Set<T> _set;
 
 	public ImmutableSet(Set<T> c) {
-		Checker.checkNull(c, "c");
+		Checker.checkNull(c);
 		_set = c;
 	}
 

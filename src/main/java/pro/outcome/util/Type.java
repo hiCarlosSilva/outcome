@@ -29,7 +29,7 @@ public class Type {
 	private String _nameBuffer;
 	
 	public Type(String typeName) {
-		Checker.checkEmpty(typeName, "typeName");
+		Checker.checkEmpty(typeName);
 		typeName = typeName.replaceAll(" ", "");
 		typeName = typeName.replaceAll("\t", "");
 		// check for array class:
@@ -43,7 +43,7 @@ public class Type {
 		// test whether the name has illegal arguments
 		// (account for "$" character in class name):
 		String tmpName = _name.replaceAll("[$]", "");
-		Checker.checkCodeIdentifier(tmpName, "className", true);
+		Checker.checkCodeIdentifier(tmpName, true);
 		// check if this is a primitive type:
 		boolean lclIsPrimitive = false;
 		int lclPrimitiveIndex = -1;
@@ -93,7 +93,7 @@ public class Type {
 	}
 	
 	public Type(Class<?> c) {
-		Checker.checkNull(c, "c");
+		Checker.checkNull(c);
 		_class = c;
 		int count = 0;
 		while(c.isArray()) {

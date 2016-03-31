@@ -13,13 +13,13 @@ public class ImmutableList<T> extends AbstractList<T> {
 	private final T[] _array;
 	
 	public ImmutableList(List<T> list) {
-		Checker.checkNull(list, "list");
+		Checker.checkNull(list);
 		_list = list;
 		_array = null;
 	}
 	
 	public ImmutableList(T[] array) {
-		Checker.checkNull(array, "array");
+		Checker.checkNull(array);
 		_list = null;
 		_array = array;
 	}

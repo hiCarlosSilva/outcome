@@ -45,7 +45,7 @@ public class Entities {
 	
 	// TODO consider doing 2: getModelForEntity, getModelForInstance
 	public Model getModel(String name) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		return _models.get(name);
 	}
 	
@@ -54,7 +54,7 @@ public class Entities {
 	}
 	
 	public Facade<? extends Instance<?>> getEntity(String name) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		return _facades.get(name);
 	}
 	
@@ -64,7 +64,7 @@ public class Entities {
 
 	// For Model:
 	void register(Model model) {
-		Checker.checkNull(model, "model");
+		Checker.checkNull(model);
 		if(_models.containsKey(model.getInstanceName())) {
 			throw new IllegalArgumentException("model for entity instance '"+model.getInstanceName()+"' has already been registered");
 		}
@@ -74,7 +74,7 @@ public class Entities {
 	// For Facade:
 	@SuppressWarnings("unchecked")
 	void load(Facade<? extends Instance<?>> f) {
-		Checker.checkNull(f, "f");
+		Checker.checkNull(f);
 		// Load entities from GAE if necessary:
 		if(!_readDatabase) {
 			_logger.info("reading entities stored in the database");

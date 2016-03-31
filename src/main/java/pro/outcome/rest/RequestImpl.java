@@ -20,7 +20,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 	}
 
 	public Cookie getCookie(String name) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		Cookie[] cookies = getCookies();
 		if(cookies == null) {
 			return null;
@@ -106,7 +106,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 	}
 
 	public String getParameter(String name, boolean required) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		String param = super.getParameter(name);
 		param = Strings.isEmpty(param) ? null : param;
 		if(required && param==null) {

@@ -8,8 +8,8 @@ class UniqueConstraint {
 	private final Field<?>[] _fields;
 
 	public UniqueConstraint(Field<?> ... fields) {
-		Checker.checkNullElements(fields, "fields");
-		Checker.checkDuplicateElements(fields, "fields");
+		Checker.checkNullElements(fields);
+		Checker.checkDuplicateElements(fields);
 		_fields = fields;
 	}
 	

@@ -9,8 +9,8 @@ public class Flag {
 	
 	// For Flags:
 	Flag(String shortcut, String description) {
-		Checker.checkEmpty(shortcut, "shortcut");
-		Checker.checkEmpty(description, "description");
+		Checker.checkEmpty(shortcut);
+		Checker.checkEmpty(description);
 		_shortcut = shortcut;
 		_description = description;
 	}

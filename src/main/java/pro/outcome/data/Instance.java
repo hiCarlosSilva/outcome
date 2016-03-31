@@ -45,8 +45,8 @@ public abstract class Instance<M extends Model> {
 	}
 
 	protected Instance(Long id) {
-		Checker.checkNull(id, "id");
-		Checker.checkMinValue(id, 1, "id");
+		Checker.checkNull(id);
+		Checker.checkMinValue(id, 1);
 		_e = new Entity(getModel().getEntityName(), id);
 		_updates = new HashMap<>();
 	}
@@ -95,7 +95,7 @@ public abstract class Instance<M extends Model> {
 
 	@SuppressWarnings("unchecked")
 	protected <T> T getValue(Field<T> f) {
-		Checker.checkNull(f,  "f");
+		Checker.checkNull(f);
 		_checkField(f);
 		// Primary key (not stored as a property):
 		if(f == getModel().id) {
@@ -111,7 +111,7 @@ public abstract class Instance<M extends Model> {
 	}
 
 	protected <T> void setValue(Field<T> f, T value) {
-		Checker.checkNull(f,  "f");
+		Checker.checkNull(f);
 		_checkField(f);
 		// Primary key:
 		if(f == getModel().id) {

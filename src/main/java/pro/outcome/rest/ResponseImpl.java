@@ -24,15 +24,15 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public boolean hasCookie(String name, String path) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		if(path != null) {
-			Checker.checkEmpty(path, "path");
+			Checker.checkEmpty(path);
 		}
 		return _cookieNames.contains(_getCookieFQN(name, path));
 	}
 
 	public void addCookie(Cookie c) {
-		Checker.checkNull(c, "c");
+		Checker.checkNull(c);
 		if(hasCookie(c.getName(), c.getPath())) {
 			throw new IllegalStateException("cookie '"+_getCookieFQN(c)+"' has already been added to the response");
 		}
@@ -41,9 +41,9 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void removeCookie(String name, String path) {
-		Checker.checkEmpty(name, "name");
+		Checker.checkEmpty(name);
 		if(path != null) {
-			Checker.checkEmpty(path, "path");
+			Checker.checkEmpty(path);
 		}
 		Cookie c = new Cookie(name, "deleted");
 		c.setMaxAge(0);
@@ -52,7 +52,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void setContentType(String contentType) {
-		Checker.checkEmpty(contentType, "contentType");
+		Checker.checkEmpty(contentType);
 		if(contentType.startsWith("text")) {
 			if(contentType.indexOf("charset") == -1) {
 				contentType = contentType+"; charset="+Servlet.CHARSET;
@@ -76,7 +76,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void sendError(StatusCode status, Json jContent, Object ... params) throws IOException {
-		Checker.checkNull(status, "status");
+		Checker.checkNull(status);
 		setContentType("application/json");
 		setStatus(status.httpCode);
 		Json jResponse = new Json();
@@ -95,7 +95,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 	
 	public void sendError(EndpointException e) throws IOException {
-		Checker.checkNull(e, "e");
+		Checker.checkNull(e);
 		setContentType("application/json");
 		setStatus(e.getErrorCode().httpCode);
 		Json jResponse = new Json();
