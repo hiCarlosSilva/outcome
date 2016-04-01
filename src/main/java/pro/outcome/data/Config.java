@@ -5,12 +5,17 @@
 package pro.outcome.data;
 import java.util.List;
 import java.util.ArrayList;
+
+import pro.outcome.data.Field.Constraint;
 import pro.outcome.util.IllegalUsageException;
 
 
 public class Config extends Entity<ConfigValue> {
 
 	// TYPE:
+	public final Field<String> name;
+	public final Field<Object> value;
+
 	public interface Properties {
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
@@ -25,8 +30,17 @@ public class Config extends Entity<ConfigValue> {
 	*/
 	
 	// INSTANCE:
+	public Config() {
+		name = addField(String.class, "name", true, Constraint.MANDATORY, Constraint.UNIQUE, Constraint.READ_ONLY);
+		value = addField(Object.class, "value", false, (Object)null, Constraint.MANDATORY);
+	}
+	
+	public Field<?>[] getNaturalKeyFields() {
+		return new Field<?>[] { name };
+	}
+
 	public Object getValue(String name) {
-		ConfigValue value = findSingle(ConfigValue.model.name.toArg(name));
+		ConfigValue value = findSingle(this.name.toArg(name));
 		if(value == null) {
 			return null;
 		}
@@ -35,7 +49,6 @@ public class Config extends Entity<ConfigValue> {
 	
 	public String getEnvironment() {
 		String e = (String)getValue(Properties.ENV);
-		//return Environments.getFlag(e);
 		if(e == null) {
 			throw new IllegalUsageException("environment config property has not been set");
 		}

@@ -13,40 +13,35 @@ import pro.outcome.util.IntegrityException;
 public abstract class Entities {
 
 	// TYPE:
-	private static final Map<String,Model> _models = new HashMap<>();
-	private static final Map<String,Entity<?>> _entities = new HashMap<>();
+	private static final Map<String,Entity<?>> _byName = new HashMap<>();
+	private static final Map<Class<?>,Entity<?>> _byInstance = new HashMap<>();
 	// Entities for this package:
 	public static final Config config = new Config();
 	
 	public static Entity<?> getEntity(String name) {
 		Checker.checkEmpty(name);
-		return _entities.get(name);
+		return _byName.get(name);
+	}
+
+	public static Entity<?> getEntityForInstance(Class<?> c) {
+		Checker.checkNull(c);
+		return _byInstance.get(c);
 	}
 
 	public static ImmutableMap<String,Entity<? extends Instance<?>>> getEntities() {
-		return new ImmutableMap<String,Entity<? extends Instance<?>>>(_entities);
-	}
-
-	public static Model getModel(String name) {
-		Checker.checkEmpty(name);
-		return _models.get(name);
-	}
-
-	public static ImmutableMap<String,Model> getModels() {
-		return new ImmutableMap<String,Model>(_models);
+		return new ImmutableMap<String,Entity<? extends Instance<?>>>(_byName);
 	}
 
 	// For Facade:
-	static void register(Entity<?> f) {
-		Model m = f.getModel();
-		if(_entities.containsKey(m.getEntityName())) {
-			throw new IllegalArgumentException(m.getEntityName()+": entity has already been registered");
+	static void register(Entity<?> e) {
+		if(_byName.containsKey(e.getName())) {
+			throw new IllegalArgumentException(e.getName()+": entity has already been registered");
 		}
-		_entities.put(m.getEntityName(), f);
-		if(_models.containsKey(m.getInstanceName())) {
+		_byName.put(e.getName(), e);
+		if(_byInstance.containsKey(e.getInstanceClass())) {
 			throw new IntegrityException();
 		}
-		_models.put(m.getInstanceName(), m);
+		_byInstance.put(e.getInstanceClass(), e);
 	}
 		
 	// INSTANCE:

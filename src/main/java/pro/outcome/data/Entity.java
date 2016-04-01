@@ -5,15 +5,20 @@
 package pro.outcome.data;
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
+import java.util.Set;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import pro.outcome.util.Checker;
+import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Logger;
-import pro.outcome.util.Reflection;
+import pro.outcome.util.Strings;
+import pro.outcome.data.Field.Constraint;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -27,29 +32,88 @@ import com.google.appengine.api.datastore.Query.Filter;
 
 public abstract class Entity<I extends Instance<?>> {
 
-	private final DatastoreService _ds;
+	// Data structure fields:
+	public final Field<Long> id;
+	public final Field<Date> timeCreated;
+	public final Field<Date> timeUpdated;
 	private final Class<I> _instanceType;
-	private final Model _model;
+	private final Map<String,Field<?>> _fields;
+	private final List<Dependency> _dependencies;
+	private final Set<UniqueConstraint> _uConstraints;
+	private boolean _naturalKeyAdded;
+	// Data management fields:
+	private final DatastoreService _ds;
 	private final Logger _logger;
 
 	@SuppressWarnings("unchecked")
 	protected Entity() {
-		_ds = DatastoreServiceFactory.getDatastoreService();
+		// Data structure:
 		_instanceType = ((Class<I>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
-		// TODO we shouldn't need this. Need to revise the class loading mechanism
-		//Reflection.load(_instanceType.getName());
-		_model = (Model)Reflection.readField(_instanceType, "model", null);
-		if(_model == null) {
-			throw new IntegrityException();
-		}
-		_logger = Logger.get(_instanceType);
+		_fields = new HashMap<>();
+		_dependencies = new ArrayList<>();
+		_uConstraints = new HashSet<>();
+		_naturalKeyAdded = false;
+		id = addField(Long.class, "id", true, Constraint.MANDATORY, Constraint.AUTO_GENERATED);
+		// TODO add defaults "now()"
+		timeCreated = addField(Date.class, "timeCreated", true, new NowGenerator(), Constraint.MANDATORY, Constraint.READ_ONLY);
+		timeUpdated = addField(Date.class, "timeUpdated", true, new NowGenerator(), Constraint.MANDATORY, Constraint.READ_ONLY);		
+		// Data management:
+		_ds = DatastoreServiceFactory.getDatastoreService();
+		_logger = Logger.get(getClass());
 		Entities.register(this);
 	}
 
-	public Model getModel() {
-		return _model;
+	// Data structure methods:
+	public abstract Field<?>[] getNaturalKeyFields();
+	
+	public String getName() {
+		return getClass().getSimpleName();
 	}
 
+	public String getInstanceName() {
+		return _instanceType.getSimpleName();
+	}
+
+	public Class<I> getInstanceClass() {
+		return _instanceType;
+	}
+	
+	public ImmutableMap<String,Field<?>> getFields() {
+		return new ImmutableMap<String,Field<?>>(_fields);
+	}
+
+	
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, Constraint ... constraints) {
+		return _addField(c, name, indexed, (DirectGenerator<T>)null, null, constraints);
+	}
+
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, T def, Constraint ... constraints) {
+		return _addField(c, name, indexed, new DirectGenerator<T>(def), null, constraints);
+	}
+
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Constraint ... constraints) {
+		return _addField(c, name, indexed, def, null, constraints);
+	}
+
+	protected <T> Field<T> addField(Class<T> c, String name, boolean indexed, Field.OnDelete onDelete, Constraint ...constraints) {
+		return _addField(c, name, indexed, null, onDelete, constraints);
+	}
+
+	protected void addUniqueConstraint(Field<?> ... fields) {
+		_addNaturalKeyConstraint();
+		if(fields == null || fields.length==0) {
+			return;
+		}
+		// TODO what about if a single field? We shouldn't allow that - use the UNIQUE constraint instead
+		// TODO also remember to prevent single field natural keys from being added
+		UniqueConstraint uc = new UniqueConstraint(fields);
+		if(_uConstraints.contains(uc)) {
+			throw new IllegalArgumentException(Strings.expand("a unique constraint with fields {} already exists", uc));
+		}
+		_uConstraints.add(uc);
+	}
+	
+	// Data management methods:
 	public void insert(I i) {
 		if(i.isPersisted()) {
 			throw new IllegalArgumentException("entity has already been persisted");
@@ -94,12 +158,12 @@ public abstract class Entity<I extends Instance<?>> {
 	public void delete(I i) {
 		Checker.checkNull(i);
 		_checkPersisted(i);
-		_logger.info("deleting {} with id {}", i.getModel().getInstanceName(), i.getId());
+		_logger.info("deleting {} with id {}", i.getEntity().getInstanceName(), i.getId());
 		// Process dependencies:
-		for(Dependency d : getModel().getDependencies()) {
-			_logger.info("found dependency in {}", d.entity.getEntityName());
+		for(Dependency d : _dependencies) {
+			_logger.info("found dependency in {}", d.entity.getName());
 			@SuppressWarnings("unchecked")
-			Entity<Instance<?>> facade = (Entity<Instance<?>>)Entities.getEntity(d.entity.getEntityName());
+			Entity<Instance<?>> facade = (Entity<Instance<?>>)Entities.getEntity(d.entity.getName());
 			Iterator<Instance<?>> it = facade.find(d.entity.id.toArg(i.getId())).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
@@ -187,6 +251,47 @@ public abstract class Entity<I extends Instance<?>> {
 		return new pro.outcome.data.Query<I>(_ds.prepare(_prepareQuery(params)), _instanceType);
 	}
 	
+	private <T> Field<T> _addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Field.OnDelete onDelete, Constraint ... constraints) {
+		Checker.checkNull(c);
+		Checker.checkEmpty(name);
+		Checker.checkNullElements(constraints);
+		if(_fields.containsKey(name)) {
+			throw new IllegalArgumentException("field with name '"+name+"' already exists");
+		}
+		Field<T> f = new Field<T>(this, c, name, indexed, def, constraints);
+		if(f.isForeignKey()) {
+			if(onDelete == null) {
+				throw new IllegalArgumentException("foreign keys require an on-delete constraint");
+			}
+			// Get the foreign entity:
+			Entity<?> foreignEntity = Entities.getEntityForInstance(c);
+			// TODO remove
+			//Model foreignEntity = (Model)Reflection.readField(c, "model", null);
+			if(foreignEntity == null) {
+				throw new IntegrityException();
+			}
+			// Record a delete dependency:
+			foreignEntity._dependencies.add(new Dependency(this, f, onDelete));
+		}
+		else {
+			// TODO check allowed data types
+		}
+		_fields.put(name, f);
+		return f;
+	}
+	
+	private void _addNaturalKeyConstraint() {
+		if(!_naturalKeyAdded) {
+			_naturalKeyAdded = true;
+			addUniqueConstraint(getNaturalKeyFields());
+		}
+	}
+
+	private Iterator<UniqueConstraint> _getUniqueConstraints() {
+		_addNaturalKeyConstraint();
+		return _uConstraints.iterator();
+	}
+
 	private void _checkPersisted(I i) {
 		if(!i.isPersisted()) {
 			throw new IllegalArgumentException("entity has not been persisted");
@@ -213,9 +318,9 @@ public abstract class Entity<I extends Instance<?>> {
     	// Validate constraints:
 		// Note: the following constraints are already validated on Instance.setValue:
 		// Data type, format, read-only, auto-gen. Mandatory is also validated, but we need to check for omitted fields.
-		for(Field<?> f : i.getModel().getFields().values()) {
+		for(Field<?> f : getFields().values()) {
 			// Skip the primary key:
-			if(f == i.getModel().id) {
+			if(f == id) {
 				continue;
 			}
 			Object value = i.getValue(f);
@@ -268,7 +373,7 @@ public abstract class Entity<I extends Instance<?>> {
 			i.flush(f, value);
 		}
 		_checkUniqueConstraints(i, false);
-		i.flush(i.getModel().timeUpdated, new Date());
+		i.flush(timeUpdated, new Date());
 		_logger.info("updating instance [{}]", i);
 	}
 	
@@ -296,7 +401,7 @@ public abstract class Entity<I extends Instance<?>> {
 	
 	private void _checkUniqueConstraints(Instance<?> i, boolean insert) {
 		System.out.println("checking unique constraints for: "+i);
-		Iterator<UniqueConstraint> it = i.getModel().getUniqueConstraints();
+		Iterator<UniqueConstraint> it = _getUniqueConstraints();
 		System.out.println("has unique constraints: "+it.hasNext());
 		while(it.hasNext()) {
 			UniqueConstraint uc = it.next();
@@ -331,4 +436,21 @@ public abstract class Entity<I extends Instance<?>> {
 		return list;
 	}
 
+	private class DirectGenerator<T> implements ValueGenerator<T> {
+		
+		private final T _value;
+		
+		public DirectGenerator(T value) {
+			_value = value;
+		}
+
+		public T generate() {
+			return _value;
+		}
+	}
+
+	// TODO substitute for regexp generator
+	private class NowGenerator implements ValueGenerator<Date> {
+		public Date generate() { return new Date(); }
+	}
 }

@@ -14,13 +14,12 @@ import pro.outcome.util.ConstructorNotVisibleException;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Reflection;
 import pro.outcome.util.Strings;
-import com.google.appengine.api.datastore.Entity;
 
 
-public abstract class Instance<M extends Model> {
+public abstract class Instance<E extends Entity<?>> {
 
 	// TYPE:
-	static <I extends Instance<?>> I newFrom(Class<I> c, Entity e) {
+	static <I extends Instance<?>> I newFrom(Class<I> c, com.google.appengine.api.datastore.Entity e) {
 		try {
 			I i = Reflection.createObject(c);
 			i.setGoogleEntity(e);
@@ -35,18 +34,14 @@ public abstract class Instance<M extends Model> {
 	}
 	
 	// INSTANCE:
-	private Entity _e;
+	private final E _parent;
+	private com.google.appengine.api.datastore.Entity _e;
 	private final Map<Field<?>,Object> _updates;
 	
+	@SuppressWarnings("unchecked")
 	protected Instance() {
-		_e = new Entity(getModel().getEntityName());
-		_updates = new HashMap<>();
-	}
-
-	protected Instance(Long id) {
-		Checker.checkNull(id);
-		Checker.checkMinValue(id, 1);
-		_e = new Entity(getModel().getEntityName(), id);
+		_parent = (E)Entities.getEntityForInstance(getClass());
+		_e = new com.google.appengine.api.datastore.Entity(getEntity().getName());
 		_updates = new HashMap<>();
 	}
 
@@ -68,10 +63,10 @@ public abstract class Instance<M extends Model> {
 	}
 	
 	public String toString() {
-		StringBuilder sb = new StringBuilder(getModel().getInstanceName());
+		StringBuilder sb = new StringBuilder(getEntity().getInstanceName());
 		sb.append(':');
 		sb.append(' ');
-		Iterator<Field<?>> it = getModel().getFields().values().iterator(); 
+		Iterator<Field<?>> it = getEntity().getFields().values().iterator(); 
 		while(it.hasNext()) {
 			Field<?> f = it.next();
 			sb.append('[');
@@ -86,18 +81,20 @@ public abstract class Instance<M extends Model> {
 		return sb.toString();
 	}
 
-	public abstract M getModel();
+	public E getEntity() {
+		return _parent;
+	}
 
 	public final Long getId() { return _e.getKey().getId(); }
-	public final Date getTimeCreated() { return getValue(getModel().timeCreated); }
-	public final Date getTimeUpdated() { return getValue(getModel().timeUpdated); }
+	public final Date getTimeCreated() { return getValue(getEntity().timeCreated); }
+	public final Date getTimeUpdated() { return getValue(getEntity().timeUpdated); }
 
 	@SuppressWarnings("unchecked")
 	protected <T> T getValue(Field<T> f) {
 		Checker.checkNull(f);
 		_checkField(f);
 		// Primary key (not stored as a property):
-		if(f == getModel().id) {
+		if(f == getEntity().id) {
 			return (T)getId();
 		}
 		// Check if we have the object cached:
@@ -113,7 +110,7 @@ public abstract class Instance<M extends Model> {
 		Checker.checkNull(f);
 		_checkField(f);
 		// Primary key:
-		if(f == getModel().id) {
+		if(f == getEntity().id) {
 			throw new IllegalArgumentException("cannot set primary key");
 		}
 		// Validate data type (it should be enforced by the compiler):
@@ -155,7 +152,7 @@ public abstract class Instance<M extends Model> {
 	}
 	
 	public QueryArg[] getNaturalKeyAsArg() {
-		Field<?>[] fields = getModel().getNaturalKeyFields();
+		Field<?>[] fields = getEntity().getNaturalKeyFields();
 		QueryArg[] arg = new QueryArg[fields.length];
 		for(int i=0; i<fields.length; i++) {
 			arg[i] = new QueryArg(fields[i], getValue(fields[i]));
@@ -164,7 +161,7 @@ public abstract class Instance<M extends Model> {
 	}
 
 	// For Facade:
-	Entity getGoogleEntity() {
+	com.google.appengine.api.datastore.Entity getGoogleEntity() {
 		return _e;
 	}
 	
@@ -196,8 +193,8 @@ public abstract class Instance<M extends Model> {
 		_updates.remove(f);
 	}
 
-	// For Self.newFrom:
-	void setGoogleEntity(Entity e) {
+	// For Self and Entity:
+	void setGoogleEntity(com.google.appengine.api.datastore.Entity e) {
 		_updates.clear();
 		//_e.setPropertiesFrom(e);
 		_e = e;
@@ -205,8 +202,8 @@ public abstract class Instance<M extends Model> {
 	
 	private void _checkField(Field<?> f) {
 		// Check if setting a field that pertains to this entity:
-		if(!getModel().getFields().containsValue(f)) {
-			throw new IllegalArgumentException(Strings.expand("field {} cannot be used in entity {}", f.getFullName(), getModel().getEntityName()));
+		if(!getEntity().getFields().containsValue(f)) {
+			throw new IllegalArgumentException(Strings.expand("field {} cannot be used in entity {}", f.getFullName(), getEntity().getName()));
 		}
 	}
 

@@ -5,26 +5,18 @@
 package pro.outcome.data;
 
 
-public class ConfigValue extends Instance<ConfigValueModel> {
+public class ConfigValue extends Instance<Config> {
 
-	// TYPE:
-	public static final ConfigValueModel model = new ConfigValueModel();
-	
-	// INSTANCE:
 	public ConfigValue() {
 	}
 	
 	public ConfigValue(String name, Object value) {
-		this.setValue(model.name, name);
-		this.setValue(model.value, value);
-	}
-	
-	public ConfigValueModel getModel() {
-		return model;
+		this.setValue(getEntity().name, name);
+		this.setValue(getEntity().value, value);
 	}
 	
 	// Field getters / setters:
-	public String getName() { return getValue(model.name); }
-	public Object getValue() { return getValue(model.value); }
-	public ConfigValue setValue(Object value) { setValue(model.value, value); return this; }	
+	public String getName() { return getValue(getEntity().name); }
+	public Object getValue() { return getValue(getEntity().value); }
+	public ConfigValue setValue(Object value) { setValue(getEntity().value, value); return this; }	
 }
