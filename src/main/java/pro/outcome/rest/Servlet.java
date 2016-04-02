@@ -74,7 +74,6 @@ public abstract class Servlet extends HttpServlet {
 		try {
 			req.setCharacterEncoding(CHARSET);
 			resp.setCharacterEncoding(CHARSET);
-			// TODO this needs to be done via config
 			resp.setContentType("application/json");
 			// Check allowed origins:
 			String origin = req.getOrigin();

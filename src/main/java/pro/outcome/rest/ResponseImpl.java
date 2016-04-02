@@ -6,12 +6,12 @@ package pro.outcome.rest;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Set;
+import java.util.Calendar;
 import java.util.HashSet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import pro.outcome.util.Checker;
-import pro.outcome.util.Tools;
 
 
 public class ResponseImpl extends HttpServletResponseWrapper implements Response {
@@ -66,13 +66,20 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void setDisableCache() {
-		// TODO can we move the code here?
-		Tools.sendDisableCacheHeaders(this);
+		setHeader("Expires", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+		setDateHeader("Last-Modified", Calendar.getInstance().getTimeInMillis()); // always modified
+		setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+		addHeader("Cache-Control", "post-check=0, pre-check=0");
+		// Supposedly, the Pragma header is a request header, not a response header (i.e., only HTTP clients
+		// should be using it). However, IE seems to use it to avoid caching, so we will keep sending it.
+		addHeader("Pragma", "no-cache");
 	}
 
 	public void setEnableCache() {
-		// TODO can we move the code here?
-		Tools.sendEnableCacheHeaders(this);
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.YEAR, c.get(Calendar.YEAR)+1);
+		setDateHeader("Expires", c.getTimeInMillis()); // Date in the future
+		setHeader("Last-Modified", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 	}
 
 	public void sendError(StatusCode status, Json jContent, Object ... params) throws IOException {

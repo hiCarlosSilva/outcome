@@ -6,8 +6,6 @@ package pro.outcome.util;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Calendar;
-import javax.servlet.http.HttpServletResponse;
 
 
 public class Tools {
@@ -57,7 +55,6 @@ public class Tools {
 		return l;
 	}
 
-	// TODO document
 	public static byte[] parseInetAddress(String address) {
 		Checker.checkEmpty(address);
 		String[] array = address.split("\\.");
@@ -78,24 +75,5 @@ public class Tools {
 			}
 		}
 		return result;
-	}
-
-	// TODO move to REST package
-	public static void sendDisableCacheHeaders(HttpServletResponse response) {
-		response.setHeader("Expires", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
-		response.setDateHeader("Last-Modified", Calendar.getInstance().getTimeInMillis()); // always modified
-		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-		response.addHeader("Cache-Control", "post-check=0, pre-check=0");
-		// Supposedly, the Pragma header is a request header, not a response header (ie, only HTTP clients
-		// should be using it). However, IE seems to use it to avoid caching, so we will keep sending it.
-		response.addHeader("Pragma", "no-cache");
-	}
-
-	// TODO move to REST package
-	public static void sendEnableCacheHeaders(HttpServletResponse response) {
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.YEAR, c.get(Calendar.YEAR)+1);
-		response.setDateHeader("Expires", c.getTimeInMillis()); // Date in the future
-		response.setHeader("Last-Modified", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 	}
 }

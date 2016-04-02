@@ -11,7 +11,6 @@ import pro.outcome.util.IntegrityException;
 public class Field<T> {
 
 	// TODO add IGNORE_CASE constraint
-	// TODO check for supported data types
 	public enum Constraint { MANDATORY, READ_ONLY, UNIQUE, AUTO_GENERATED };
 	public enum OnDelete { CASCADE, RESTRICT, SET_NULL };
 	private final Entity<?> _parent;
@@ -108,10 +107,6 @@ public class Field<T> {
 		if(value == null) {
 			return null;
 		}
-		// Convert Flag objects to their corresponding shortcut:
-		if(value.getClass() == Flag.class) {
-			return ((Flag)value).getShortcut();
-		}
 		// Convert foreign entities to their id's:
 		if(Instance.class.isAssignableFrom(_type)) {
 			Instance<?> i = (Instance<?>)value;
@@ -130,20 +125,12 @@ public class Field<T> {
 		if(value == null) {
 			return null;
 		}
-		if(_type == Flag.class) {
-			// TODO handle flags
-			throw new RuntimeException();
-		}
 		if(_foreignKey) {
 			if(_related == null) {
 				_related = Entities.getEntityForInstance(_type);
 				if(_related == null) {
 					throw new IntegrityException();
 				}
-				// TODO remove this
-				//Instance<?> i = (Instance<?>)Reflection.createObject(_type);
-				//_related = i.getEntity();
-				//_related = (Entity<?>)Entities.getEntity(Entities.getByInstanceName(_type.getSimpleName()).getEntityName());
 			}
 			return (T)_related.find((Long)value);
 		}

@@ -12,14 +12,19 @@ import java.util.ArrayList;
 
 public class Strings {
 
+	public final static String EMPTY = "";
 	private static String _EXPANSION_REGEX = "\\{\\}";
+	private static final String _NULL_LC = "null";
+	private final static String _TRUE = "true";
+	private final static String _FALSE = "false";
+	private static final String _ESCAPE_CHARS = "nrtbf0\\";
 
 	private Strings() {
 		super();
 	}
 
 	public static boolean isEmpty(String s) {
-		return s==null || s.trim().equals(Constants.EMPTY);
+		return s==null || s.trim().equals(EMPTY);
 	}
 
 	public static boolean isEmpty(String s, boolean trim) {
@@ -29,7 +34,7 @@ public class Strings {
 		if(trim) {
 			s = s.trim();
 		}
-		return s.equals(Constants.EMPTY);
+		return s.equals(EMPTY);
 	}
 
 	public static boolean isUpperCase(String s) {
@@ -91,7 +96,6 @@ public class Strings {
 		return b.toString();
 	}
 
-	// TODO document
 	// TODO can we reimplement addSlashes as escape(s, "\"\'")?
 	// Note: we need to espace the slash character itself (\) otherwise when unescaping we will
 	// miss the character just next to it (i.e. if(charAt(i)=='\\') skip;)
@@ -113,7 +117,7 @@ public class Strings {
 	}
 	
 	// TODO document: this is to be used with strings that have been escaped with "escape"
-	// and both splits and unescapes the characters. It does not use regular exprs
+	// and both splits and un-escapes the characters. It does not use regular expressions.
 	public static String[] splitAndUnescape(String s, String tokens) {
 		Checker.checkNull(s);
 		Checker.checkEmpty(tokens);
@@ -155,7 +159,7 @@ public class Strings {
 			if(s.charAt(i) == '\\') {
 				i++;
 				// Regular escaped char:
-				if(Constants.ESCAPE_CHARS.indexOf(s.charAt(i)) != -1) {
+				if(_ESCAPE_CHARS.indexOf(s.charAt(i)) != -1) {
 					char c = s.charAt(i);
 					sb.append(c=='n'?'\n' : (c=='r'?'\r':(c=='t'?'\t':(c=='b'?'\b':(c=='f'?'\f':(c=='0'?'\0':'\\'))))));
 				}
@@ -260,7 +264,7 @@ public class Strings {
 	public static String replaceAll(String s, String toReplace, String replacement) {
 		Checker.checkEmpty(s);
 		Checker.checkEmpty(toReplace);
-		replacement = replacement == null  ? Constants.EMPTY : replacement;
+		replacement = replacement == null  ? EMPTY : replacement;
 		StringBuilder sb = new StringBuilder(s);
 		for(int index = sb.indexOf(toReplace); index != -1; index = sb.indexOf(toReplace, index+replacement.length())) {
 			sb.replace(index, index+toReplace.length(), replacement);
@@ -306,13 +310,12 @@ public class Strings {
 		return -1;
 	}
 
-	//TODO document
 	public static Boolean toBoolean(String s, boolean ignoreCase) {
 		Checker.checkEmpty(s);
-		if(equals(s, Constants.TRUE, ignoreCase)) {
+		if(equals(s, _TRUE, ignoreCase)) {
 			return Boolean.TRUE;
 		}
-		else if(equals(s, Constants.FALSE, ignoreCase)) {
+		else if(equals(s, _FALSE, ignoreCase)) {
 			return Boolean.FALSE;
 		}
 		else {
@@ -353,7 +356,7 @@ public class Strings {
 		Checker.checkEmpty(s);
 		for(Object p : params) {
 			if(p == null) {
-				p = Constants.NULL_LC;
+				p = _NULL_LC;
 			}
 			// TODO check why we need to escape this
 			s = s.replaceFirst(_EXPANSION_REGEX, escape(p.toString(), "$"));

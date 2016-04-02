@@ -1,5 +1,4 @@
 package pro.outcome.data;
-import pro.outcome.util.Checker;
 import pro.outcome.util.Arrays;
 
 
@@ -8,8 +7,7 @@ class UniqueConstraint {
 	private final Field<?>[] _fields;
 
 	public UniqueConstraint(Field<?> ... fields) {
-		Checker.checkNullElements(fields);
-		Checker.checkDuplicateElements(fields);
+		// Precondition checks are done on Entity.
 		_fields = fields;
 	}
 	
@@ -38,6 +36,10 @@ class UniqueConstraint {
 		return false;
 	}
 	
+	public Field<?>[] getFields() {
+		return _fields;
+	}
+
 	public QueryArg[] toArgs(Instance<?> i) {
 		QueryArg[] args = new QueryArg[_fields.length];
 		for(int j=0; j<_fields.length; j++) {

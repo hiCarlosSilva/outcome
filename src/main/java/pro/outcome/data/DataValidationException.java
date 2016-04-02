@@ -5,7 +5,6 @@
 package pro.outcome.data;
 
 
-// TODO extend from ManagedException
 public abstract class DataValidationException extends RuntimeException {
 
 	private final Field<?> _field;

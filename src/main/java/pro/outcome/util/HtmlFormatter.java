@@ -8,6 +8,8 @@ package pro.outcome.util;
 // For Strings
 class HtmlFormatter {
 
+	public static final int _TAB_SIZE = 4;
+
 	public static String format(String source) {
 		Checker.checkNull(source);
 		StringBuilder sb = new StringBuilder();
@@ -15,7 +17,7 @@ class HtmlFormatter {
 		for(int i=0; i<source.length(); i++) {
 			if(source.charAt(i) == '\t') {
 				// Substitute TAB by spaces:
-				int tabLength = Constants.TAB_SIZE;
+				int tabLength = _TAB_SIZE;
 				if(nbspCount == 0) {
 					sb.append(' ');
 					tabLength--;

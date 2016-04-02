@@ -126,7 +126,6 @@ public class Reflection {
 		return getDeclaredMethod(false, c, name, parameterTypes);
 	}
 
-	// TODO change order of these params to c, fieldName, o
 	public static Object readField(Class<?> c, String fieldName, Object o) {
 		Checker.checkNull(c);
 		Checker.checkEmpty(fieldName);

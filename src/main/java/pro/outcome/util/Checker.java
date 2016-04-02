@@ -22,7 +22,7 @@ public class Checker {
 	
 	public static String checkEmpty(String arg) {
 		checkNull(arg);
-		if(arg.equals(Constants.EMPTY)) {
+		if(arg.equals(Strings.EMPTY)) {
 			throw new IllegalArgumentException("empty argument");
 		}
 		return arg;

@@ -32,7 +32,5 @@ public class StatusCodes {
 	public static final StatusCode NOT_AUTHENTICATED = add(6, "user is not authenticated", HttpServletResponse.SC_UNAUTHORIZED);
 	public static final StatusCode SESSION_CLOSED = add(7, "session is closed", HttpServletResponse.SC_UNAUTHORIZED);
 	public static final StatusCode RESOURCE_NOT_FOUND = add(8, "{} was not found: '{}'", HttpServletResponse.SC_NOT_FOUND);
-	// TODO remove public static final StatusCode INVALID_SESSION = add(8, "could not find user session", HttpServletResponse.SC_UNAUTHORIZED);
-	// TODO remove public static final StatusCode NO_ACCESS = add(7, "user does not have permissions to access the resource requested", HttpServletResponse.SC_FORBIDDEN);
 	public static final StatusCode UNEXPECTED = add(999, "unexpected error occurred: {}", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 }

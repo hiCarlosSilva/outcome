@@ -7,11 +7,11 @@ package pro.outcome.data;
 
 class Dependency {
 
-	public final Entity<?> entity;
+	public final Entity<Instance<?>> entity;
 	public final Field<?> foreignKey;
 	public final Field.OnDelete onDelete;
 
-	public Dependency(Entity<?> entity, Field<?> foreignKey, Field.OnDelete onDelete) {
+	public Dependency(Entity<Instance<?>> entity, Field<?> foreignKey, Field.OnDelete onDelete) {
 		this.entity = entity;
 		this.foreignKey = foreignKey;
 		this.onDelete = onDelete;
@@ -19,5 +19,9 @@ class Dependency {
 	
 	public String toString() {
 		return "Dependency: "+foreignKey.getFullName();
+	}
+	
+	public Query<Instance<?>> findInstancesRelatedTo(Instance<?> i) {
+		return entity.find(new QueryArg(foreignKey, i));
 	}
 }
