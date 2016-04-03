@@ -11,8 +11,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/carloss/Documents/Local/git/outcome/lib/appengine-api-1.0-sdk-1.9.0.jar"/>
-	<classpathentry kind="lib" path="/Users/carloss/Documents/Local/git/outcome/lib/servlet-api.jar"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
