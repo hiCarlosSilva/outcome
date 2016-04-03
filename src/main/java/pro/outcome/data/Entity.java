@@ -257,6 +257,7 @@ public abstract class Entity<I extends Instance<?>> {
 		try {
 			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getName(), id);
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
+			_logger.info(e == null ? "{} not found" : "{} found", getInstanceName());
 			return _createSafely(e);
 		}
 		catch(EntityNotFoundException enfe) {
@@ -287,9 +288,11 @@ public abstract class Entity<I extends Instance<?>> {
 				if(p != idArg) {
 					Object value = i.getValue(p.getField());
 					if(value == null && p.getValue() != null) {
+						_logger.info("field {} does not match", p.getField().getFullName());
 						return null;
 					}
 					if(!value.equals(p.getValue())) {
+						_logger.info("field {} does not match", p.getField().getFullName());
 						return null;
 					}
 				}
@@ -301,7 +304,9 @@ public abstract class Entity<I extends Instance<?>> {
 			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
 			Query q = new Query(getName()).setFilter(f);
 			_logger.info("running query: {}", q);
-			return _createSafely(_ds.prepare(q).asSingleEntity());
+			com.google.appengine.api.datastore.Entity e = _ds.prepare(q).asSingleEntity();
+			_logger.info(e == null ? "{} not found" : "{} found", getInstanceName());
+			return _createSafely(e);
 		}
 	}
 	
