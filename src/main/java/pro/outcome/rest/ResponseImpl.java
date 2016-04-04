@@ -101,6 +101,13 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		out.close();
 	}
 	
+	public void sendError(StatusCode status) throws IOException {
+		if(status == StatusCodes.OK) {
+			throw new IllegalArgumentException("incorrect status code (cannot be OK)");
+		}
+		sendError(status, null);
+	}
+
 	public void sendError(EndpointException e) throws IOException {
 		Checker.checkNull(e);
 		setContentType("application/json");

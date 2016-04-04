@@ -29,6 +29,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
+import com.google.appengine.api.datastore.PreparedQuery;
 
 
 public abstract class Entity<I extends Instance<?>> {
@@ -62,6 +63,10 @@ public abstract class Entity<I extends Instance<?>> {
 		_ds = DatastoreServiceFactory.getDatastoreService();
 		_logger = Logger.get(getClass());
 		Entities.register(this);
+	}
+
+	protected Logger getLogger() {
+		return _logger;
 	}
 
 	// Data structure methods:
@@ -311,7 +316,9 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 	
 	public pro.outcome.data.Query<I> find(QueryArg ... params) {
-		return new pro.outcome.data.Query<I>(_ds.prepare(_prepareQuery(params)), _instanceType);
+		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
+		_logger.info("running query: {}", pq);
+		return new pro.outcome.data.Query<I>(pq, _instanceType);
 	}
 	
 	@SuppressWarnings("unchecked")

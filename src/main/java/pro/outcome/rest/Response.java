@@ -16,6 +16,7 @@ public interface Response extends HttpServletResponse {
 	public void setDisableCache();
 	public void setEnableCache();
 	public void sendError(StatusCode status, Json content, Object ... params) throws IOException;
+	public void sendError(StatusCode status) throws IOException;
 	public void sendError(EndpointException e) throws IOException;
 	public void sendOk(Json content) throws IOException;
 	public void sendOk() throws IOException;

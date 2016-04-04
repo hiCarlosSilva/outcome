@@ -29,8 +29,6 @@ public class StatusCodes {
 	public static final StatusCode METHOD_NOT_ALLOWED = add(3, "{}: method not allowed", HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 	public static final StatusCode PARAM_NOT_FOUND = add(4, "mandatory parameter '{}' not found", HttpServletResponse.SC_BAD_REQUEST);
 	public static final StatusCode INVALID_PARAM = add(5, "unexpected value for parameter '{}': '{}'", HttpServletResponse.SC_BAD_REQUEST);
-	public static final StatusCode NOT_AUTHENTICATED = add(6, "user is not authenticated", HttpServletResponse.SC_UNAUTHORIZED);
-	public static final StatusCode SESSION_CLOSED = add(7, "session is closed", HttpServletResponse.SC_UNAUTHORIZED);
-	public static final StatusCode RESOURCE_NOT_FOUND = add(8, "{} was not found: '{}'", HttpServletResponse.SC_NOT_FOUND);
+	public static final StatusCode RESOURCE_NOT_FOUND = add(6, "{} was not found: '{}'", HttpServletResponse.SC_NOT_FOUND);
 	public static final StatusCode UNEXPECTED = add(999, "unexpected error occurred: {}", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 }

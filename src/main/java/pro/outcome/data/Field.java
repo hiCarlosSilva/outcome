@@ -27,7 +27,7 @@ public class Field<T> {
 
 	// For Model:
 	Field(Entity<?> parent, Class<T> cl, String name, boolean indexed, ValueGenerator<T> def, Constraint ... constraints) {
-		// Note: null and empty checks are carried out on Model.addField 
+		// Note: null and empty checks are carried out on Entity.addField 
 		_parent = parent;
 		_type = cl;
 		_name = name;
