@@ -4,7 +4,7 @@
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
 
-public interface AccessChecker {
+public interface AccessChecker { 
 
 	public void checkAccess(Request req, Response resp);
 }
