@@ -254,6 +254,7 @@ public abstract class Entity<I extends Instance<?>> {
 	// This method is protected to avoid making it available to subclasses by default.
 	// Entity classes need to explicitly expose this method to allow its use.
 	protected void deleteAll() {
+		_logger.info("running query: DELETE FROM {}", getName());
 		_ds.delete(_getKeysFrom(find().iterate()));
 	}
 

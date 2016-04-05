@@ -73,13 +73,10 @@ public class Json {
 					Json child = (Json)p.getValue();
 					child._print(out, level+1, child._fields.iterator());
 				}
-				else if(p.getValue() instanceof String) {
+				else {
 					out.print("\"");
 					out.print(Strings.escape(p.getValue().toString(), "\""));
 					out.print("\"");
-				}
-				else {
-					out.print(p.getValue().toString());
 				}
 			}
 			if(it.hasNext()) {

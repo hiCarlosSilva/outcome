@@ -76,6 +76,7 @@ public abstract class Servlet extends HttpServlet {
 			resp.setCharacterEncoding(CHARSET);
 			resp.setContentType("application/json");
 			// Check allowed origins:
+			// TODO we don't need to check, we just need to set the headers
 			String origin = req.getOrigin();
 			// TODO this must be an access checker
 			List<String> allowedOrigins = Entities.config.getAllowedOrigins();

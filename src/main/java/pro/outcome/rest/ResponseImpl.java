@@ -141,7 +141,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 			return name;
 		}
 		else {
-			return path + "/" + name;
+			return path + name;
 		}
 	}	
 }
