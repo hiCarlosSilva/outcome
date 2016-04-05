@@ -13,8 +13,8 @@ public abstract class TestServlet extends Servlet {
 
 	// INSTANCE:
 	protected TestServlet() {
-		addAccessChecker(new AccessChecker() {
-			public void checkAccess(Request req, Response resp) {
+		addPreProcessor(new Processor() {
+			public void process(Request req, Response resp) {
 				if(req.getServerName().equals(LIVE_SERVER_NAME)) {
 					throw new IllegalUsageException("cannot use test servlets in the Live environment");
 				}

@@ -22,13 +22,15 @@ public abstract class Servlet extends HttpServlet {
 	static final String CHARSET = "UTF-8";
 
 	// INSTANCE:
-	private final List<AccessChecker> _checkers;
+	private final List<Processor> _pre;
+	private final List<Processor> _post;
 	private final boolean _doGetOverridden;
 	private final boolean _doPostOverridden;
 	
 	protected Servlet() {
 		super();
-		_checkers = new ArrayList<AccessChecker>();
+		_pre = new ArrayList<Processor>();
+		_post = new ArrayList<Processor>();
 		_doGetOverridden = Reflection.getDeclaredMethod(true, getClass(), "doGet", Request.class, Response.class) != null;
 		_doPostOverridden = Reflection.getDeclaredMethod(true, getClass(), "doPost", Request.class, Response.class) != null;
 	}
@@ -63,9 +65,14 @@ public abstract class Servlet extends HttpServlet {
 		throw new IntegrityException();
 	}
 
-	protected void addAccessChecker(AccessChecker checker) {
-		Checker.checkNull(checker);
-		_checkers.add(checker);
+	protected void addPreProcessor(Processor pre) {
+		Checker.checkNull(pre);
+		_pre.add(pre);
+	}
+
+	protected void addPostProcessor(Processor post) {
+		Checker.checkNull(post);
+		_post.add(post);
 	}
 
 	private final void _process(HTTP_METHOD method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
@@ -85,9 +92,9 @@ public abstract class Servlet extends HttpServlet {
 				resp.setHeader("Access-Control-Allow-Origin", origin);
 				resp.setHeader("Access-Control-Allow-Credentials", "true");
 			}
-			// Check access:
-			for(AccessChecker checker : _checkers) {
-				checker.checkAccess(req, resp);
+			// Pre-processors:
+			for(Processor p : _pre) {
+				p.process(req, resp);
 			}
 			// Process request:
 			if(method == HTTP_METHOD.GET) {
@@ -104,6 +111,10 @@ public abstract class Servlet extends HttpServlet {
 			}
 			else {
 				throw new MethodNotAllowedException(method);
+			}
+			// Post-processors:
+			for(Processor p : _post) {
+				p.process(req, resp);
 			}
 		}
 		catch(Exception e) {
