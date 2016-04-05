@@ -20,6 +20,7 @@ public abstract class Servlet extends HttpServlet {
 
 	// TYPE:
 	static final String CHARSET = "UTF-8";
+	static final String CONTENT_TYPE = "application/json";
 
 	// INSTANCE:
 	private final List<Processor> _pre;
@@ -81,7 +82,7 @@ public abstract class Servlet extends HttpServlet {
 		try {
 			req.setCharacterEncoding(CHARSET);
 			resp.setCharacterEncoding(CHARSET);
-			resp.setContentType("application/json");
+			resp.setContentType(CONTENT_TYPE);
 			// Check allowed origins:
 			// TODO we don't need to check, we just need to set the headers
 			String origin = req.getOrigin();
@@ -91,6 +92,7 @@ public abstract class Servlet extends HttpServlet {
 				// If it is an allowed origin, enable cross-site scripting:
 				resp.setHeader("Access-Control-Allow-Origin", origin);
 				resp.setHeader("Access-Control-Allow-Credentials", "true");
+				resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
 			}
 			// Pre-processors:
 			for(Processor p : _pre) {
