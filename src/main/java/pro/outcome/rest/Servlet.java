@@ -91,6 +91,7 @@ public abstract class Servlet extends HttpServlet {
 				// If it is an allowed origin, enable cross-site scripting:
 				resp.setHeader("Access-Control-Allow-Origin", origin);
 				resp.setHeader("Access-Control-Allow-Credentials", "true");
+				resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
 			}
 			// Pre-processors:
 			for(Processor p : _pre) {
