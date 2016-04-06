@@ -56,11 +56,13 @@ public abstract class Servlet extends HttpServlet {
 		_process(HTTP_METHOD.DELETE, req, resp);
 	}
 
+	// Note: this method stub is included so that subclasses don't have to override it.
 	protected void doGet(Request req, Response resp) throws IOException {
 		// Code should never get here:
 		throw new IntegrityException();
 	}
 
+	// Note: this method stub is included so that subclasses don't have to override it.
 	protected void doPost(Request req, Response resp) throws IOException {
 		// Code should never get here:
 		throw new IntegrityException();
@@ -84,17 +86,16 @@ public abstract class Servlet extends HttpServlet {
 			resp.setCharacterEncoding(CHARSET);
 			resp.setContentType(CONTENT_TYPE);
 			// Check allowed origins:
-			// TODO we don't need to check, we just need to set the headers
 			String origin = req.getOrigin();
-			// TODO this must be an access checker
 			List<String> allowedOrigins = Entities.config.getAllowedOrigins();
 			if(allowedOrigins.contains(origin)) {
-				// If it is an allowed origin, enable cross-site scripting:
+				// Enable Cross-Origin Resource Sharing (see link below for details)
+				// http://www.html5rocks.com/en/tutorials/cors/
 				resp.setHeader("Access-Control-Allow-Origin", origin);
 				resp.setHeader("Access-Control-Allow-Credentials", "true");
 				resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
 			}
-			// Pre-processors:
+			// Preprocessors:
 			for(Processor p : _pre) {
 				p.process(req, resp);
 			}
