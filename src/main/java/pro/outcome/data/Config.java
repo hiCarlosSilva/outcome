@@ -5,7 +5,8 @@
 package pro.outcome.data;
 import java.util.List;
 import java.util.ArrayList;
-
+import java.util.Map;
+import java.util.HashMap;
 import pro.outcome.data.Field.Constraint;
 import pro.outcome.util.IllegalUsageException;
 
@@ -17,6 +18,7 @@ public class Config extends Entity<ConfigValue> {
 	public final Field<Object> value;
 
 	public interface Properties {
+		public static final String BASE_URL = "base-url";
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
 	}
@@ -30,9 +32,12 @@ public class Config extends Entity<ConfigValue> {
 	*/
 	
 	// INSTANCE:
+	private final Map<String,ConfigValue> _cache;
+	
 	public Config() {
 		name = addField(String.class, "name", true, Constraint.MANDATORY, Constraint.UNIQUE, Constraint.READ_ONLY);
 		value = addField(Object.class, "value", false, (Object)null, Constraint.MANDATORY);
+		_cache = new HashMap<>();
 	}
 	
 	public Field<?>[] getNaturalKeyFields() {
@@ -40,13 +45,28 @@ public class Config extends Entity<ConfigValue> {
 	}
 
 	public Object getValue(String name) {
-		ConfigValue value = findSingle(this.name.toArg(name));
+		ConfigValue value = null;
+		if(_cache.containsKey(name)) {
+			value = _cache.get(name);
+		}
+		else {
+			value = findSingle(this.name.toArg(name));
+			_cache.put(name, value);
+		}
 		if(value == null) {
 			return null;
 		}
 		return value.getValue();
 	}
 	
+	public String getBaseUrl() {
+		String baseUrl = (String)getValue(Properties.BASE_URL);
+		if(baseUrl == null) {
+			throw new IllegalUsageException("base URL property has not been set");
+		}
+		return baseUrl;
+	}
+
 	public String getEnvironment() {
 		String e = (String)getValue(Properties.ENV);
 		if(e == null) {
@@ -59,10 +79,5 @@ public class Config extends Entity<ConfigValue> {
 		@SuppressWarnings("unchecked")
 		List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
 		return ao == null ? new ArrayList<String>(0) : ao;
-	}
-	
-	// TODO replace with stored property
-	public String getBaseUrl() {
-		return "http://localhost:8080";
 	}
 }
