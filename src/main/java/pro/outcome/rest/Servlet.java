@@ -13,6 +13,7 @@ import pro.outcome.rest.Request.HTTP_METHOD;
 import pro.outcome.data.Entities;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
+import pro.outcome.util.Logger;
 import pro.outcome.util.Reflection;
 
 
@@ -25,6 +26,7 @@ public abstract class Servlet extends HttpServlet {
 	// INSTANCE:
 	private final List<Processor> _pre;
 	private final List<Processor> _post;
+	private final Logger _logger;
 	private final boolean _doGetOverridden;
 	private final boolean _doPostOverridden;
 	
@@ -32,10 +34,11 @@ public abstract class Servlet extends HttpServlet {
 		super();
 		_pre = new ArrayList<Processor>();
 		_post = new ArrayList<Processor>();
+		_logger = Logger.get(getClass());
 		_doGetOverridden = Reflection.getDeclaredMethod(true, getClass(), "doGet", Request.class, Response.class) != null;
 		_doPostOverridden = Reflection.getDeclaredMethod(true, getClass(), "doPost", Request.class, Response.class) != null;
 	}
-	
+
 	public final void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		_process(HTTP_METHOD.GET, req, resp);
 	}
@@ -68,6 +71,10 @@ public abstract class Servlet extends HttpServlet {
 		throw new IntegrityException();
 	}
 
+	protected Logger getLogger() {
+		return _logger;
+	}
+
 	protected void addPreProcessor(Processor pre) {
 		Checker.checkNull(pre);
 		_pre.add(pre);
@@ -87,6 +94,7 @@ public abstract class Servlet extends HttpServlet {
 			resp.setContentType(CONTENT_TYPE);
 			// Check allowed origins:
 			String origin = req.getOrigin();
+			// TODO cache this
 			List<String> allowedOrigins = Entities.config.getAllowedOrigins();
 			if(allowedOrigins.contains(origin)) {
 				// Enable Cross-Origin Resource Sharing (see link below for details)

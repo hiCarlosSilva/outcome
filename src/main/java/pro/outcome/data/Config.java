@@ -60,4 +60,9 @@ public class Config extends Entity<ConfigValue> {
 		List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
 		return ao == null ? new ArrayList<String>(0) : ao;
 	}
+	
+	// TODO replace with stored property
+	public String getBaseUrl() {
+		return "http://localhost:8080";
+	}
 }

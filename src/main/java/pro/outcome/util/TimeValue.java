@@ -22,6 +22,10 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 
 	private final long _milliseconds;
 	
+	public TimeValue() {
+		this(new Date());
+	}
+
 	public TimeValue(Date date) {
 		Checker.checkNull(date);
 		_milliseconds = date.getTime();
