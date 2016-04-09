@@ -38,7 +38,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 		if(origin == null) {
 			origin = getHeader("host");
 		}
-		if(origin.startsWith("http://")) {
+		if(origin.startsWith("http://") || origin.startsWith("https://")) {
 			return origin;
 		}
 		else {
@@ -52,7 +52,7 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 		sb.append(getServerName());
 		int port = getServerPort();
 		if(port != 80) {
-			sb.append(":");			
+			sb.append(":");
 			sb.append(port);			
 		}
 		return sb.toString();

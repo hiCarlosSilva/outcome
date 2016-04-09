@@ -12,15 +12,22 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import pro.outcome.util.Checker;
+import pro.outcome.util.IntegrityException;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 
 public class ResponseImpl extends HttpServletResponseWrapper implements Response {
 
 	private final Set<String> _cookieNames;
+	private boolean _contentTypeSet;
+	private boolean _lenient;
 	
 	public ResponseImpl(HttpServletResponse response) {
 		super(response);
 		_cookieNames = new HashSet<String>();
+		_contentTypeSet = false;
+		_lenient = false;
 	}
 
 	public boolean hasCookie(String name, String path) {
@@ -53,12 +60,16 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void setContentType(String contentType) {
 		Checker.checkEmpty(contentType);
+		if(_contentTypeSet && !_lenient) {
+			throw new IllegalStateException("content type has already been set");
+		}
 		if(contentType.startsWith("text")) {
 			if(contentType.indexOf("charset") == -1) {
 				contentType = contentType+"; charset="+Servlet.CHARSET;
 			}
 		}
 		super.setContentType(contentType);
+		_contentTypeSet = true;
 	}
 
 	public void setLastModified(long timestamp) {
@@ -84,7 +95,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void sendError(StatusCode status, Json jContent, Object ... params) throws IOException {
 		Checker.checkNull(status);
-		setContentType("application/json");
+		setContentType(MimeTypes.JSON);
 		setStatus(status.httpCode);
 		Json jResponse = new Json();
 		Json jHeader = jResponse.add("header");
@@ -110,7 +121,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void sendError(EndpointException e) throws IOException {
 		Checker.checkNull(e);
-		setContentType("application/json");
+		setContentType(MimeTypes.JSON);
 		setStatus(e.getErrorCode().httpCode);
 		Json jResponse = new Json();
 		Json jHeader = jResponse.add("header");
@@ -132,6 +143,22 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		sendOk(null);
 	}
 	
+	public void sendTemplate(Template ftl, Object data) throws IOException {
+		if(!_contentTypeSet) {
+			throw new IllegalStateException("content type has not been set yet");
+		}
+		try {
+			ftl.process(data, getWriter());
+		}
+		catch(TemplateException te) {
+			throw new IntegrityException(te);
+		}
+	}
+
+	public void setLenient(boolean lenient) {
+		_lenient = lenient;
+	}
+
 	private String _getCookieFQN(Cookie c) {
 		return _getCookieFQN(c.getName(), c.getPath());
 	}

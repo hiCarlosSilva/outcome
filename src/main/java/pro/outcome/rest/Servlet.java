@@ -6,6 +6,8 @@ package pro.outcome.rest;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,13 +17,16 @@ import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Logger;
 import pro.outcome.util.Reflection;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 
 
 public abstract class Servlet extends HttpServlet {
 
 	// TYPE:
 	static final String CHARSET = "UTF-8";
-	static final String CONTENT_TYPE = "application/json";
+	private static final String _TEMPLATES_CFG_ATTR = "ftl-cfg";
 
 	// INSTANCE:
 	private final List<Processor> _pre;
@@ -29,6 +34,7 @@ public abstract class Servlet extends HttpServlet {
 	private final Logger _logger;
 	private final boolean _doGetOverridden;
 	private final boolean _doPostOverridden;
+	private Configuration _cfg;
 	
 	protected Servlet() {
 		super();
@@ -37,7 +43,10 @@ public abstract class Servlet extends HttpServlet {
 		_logger = Logger.get(getClass());
 		_doGetOverridden = Reflection.getDeclaredMethod(true, getClass(), "doGet", Request.class, Response.class) != null;
 		_doPostOverridden = Reflection.getDeclaredMethod(true, getClass(), "doPost", Request.class, Response.class) != null;
+		_cfg = null;
 	}
+
+	protected abstract String getContentTypeForOptions();
 
 	public final void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		_process(HTTP_METHOD.GET, req, resp);
@@ -57,6 +66,26 @@ public abstract class Servlet extends HttpServlet {
 
 	public final void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		_process(HTTP_METHOD.DELETE, req, resp);
+	}
+
+	public final void doOptions(HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException, ServletException {
+		Request req = new RequestImpl(httpReq);
+		Response resp = new ResponseImpl(httpResp);
+		super.doOptions(req, resp);
+		StringBuilder allowedMethods = new StringBuilder();
+		allowedMethods.append("OPTIONS, HEAD");
+		if(_doGetOverridden) {
+			allowedMethods.append(", ").append(HTTP_METHOD.GET);
+		}
+		if(_doPostOverridden) {
+			allowedMethods.append(", ").append(HTTP_METHOD.POST);
+		}
+		resp.setHeader("Allow", allowedMethods.toString());
+		String contentType = getContentTypeForOptions();
+		if(contentType != null) {
+			resp.setContentType(contentType);
+		}
+		_checkAllowedOrigins(req, resp);
 	}
 
 	// Note: this method stub is included so that subclasses don't have to override it.
@@ -84,25 +113,55 @@ public abstract class Servlet extends HttpServlet {
 		Checker.checkNull(post);
 		_post.add(post);
 	}
+	
+	protected Template getTemplate(String path) throws IOException {
+		Checker.checkEmpty(path);
+		if(_cfg == null) {
+			ServletContext ctx = getServletContext();
+			synchronized(ctx) {
+				_cfg = (Configuration)ctx.getAttribute(_TEMPLATES_CFG_ATTR);
+				if(_cfg == null) {
+					_cfg = new Configuration();
+					_cfg.setServletContextForTemplateLoading(getServletContext(), "/WEB-INF/templates");
+					_cfg.setDefaultEncoding(CHARSET);
+					if(Entities.config.getEnvironment().equals("live")) {
+						_cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+					}
+					else {
+						_cfg.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
+					}
+					ctx.setAttribute(_TEMPLATES_CFG_ATTR, _cfg);
+				}
+			}
+		}
+		return _cfg.getTemplate(path);
+	}
 
-	private final void _process(HTTP_METHOD method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
+	private void _checkAllowedOrigins(Request req, Response resp) throws IOException {
+		String origin = req.getOrigin();
+		// TODO remove
+		getLogger().info("received request from origin: {}", origin);
+		List<String> allowedOrigins = Entities.config.getAllowedOrigins();
+		if(allowedOrigins.contains(origin)) {
+			// Enable Cross-Origin Resource Sharing (see link below for details)
+			// http://www.html5rocks.com/en/tutorials/cors/
+			resp.setHeader("Access-Control-Allow-Origin", origin);
+			resp.setHeader("Access-Control-Allow-Credentials", "true");
+			resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
+		}
+		else {
+			// TODO remove
+			getLogger().info("origin '{}' is not allowed", origin);
+		}
+	}
+
+	private void _process(HTTP_METHOD method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
 		Request req = new RequestImpl(httpReq);
 		Response resp = new ResponseImpl(httpResp);
 		try {
 			req.setCharacterEncoding(CHARSET);
 			resp.setCharacterEncoding(CHARSET);
-			resp.setContentType(CONTENT_TYPE);
-			// Check allowed origins:
-			String origin = req.getOrigin();
-			// TODO cache this
-			List<String> allowedOrigins = Entities.config.getAllowedOrigins();
-			if(allowedOrigins.contains(origin)) {
-				// Enable Cross-Origin Resource Sharing (see link below for details)
-				// http://www.html5rocks.com/en/tutorials/cors/
-				resp.setHeader("Access-Control-Allow-Origin", origin);
-				resp.setHeader("Access-Control-Allow-Credentials", "true");
-				resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
-			}
+			_checkAllowedOrigins(req, resp);
 			// Preprocessors:
 			for(Processor p : _pre) {
 				p.process(req, resp);

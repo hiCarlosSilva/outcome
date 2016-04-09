@@ -5,6 +5,7 @@
 package pro.outcome.rest;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
+import freemarker.template.Template;
 
 
 public interface Response extends HttpServletResponse {
@@ -20,4 +21,6 @@ public interface Response extends HttpServletResponse {
 	public void sendError(EndpointException e) throws IOException;
 	public void sendOk(Json content) throws IOException;
 	public void sendOk() throws IOException;
+	public void sendTemplate(Template ftl, Object data) throws IOException;
+	public void setLenient(boolean lenient);
 }

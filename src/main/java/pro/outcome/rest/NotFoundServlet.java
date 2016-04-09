@@ -12,6 +12,10 @@ import pro.outcome.rest.Servlet;
 
 public class NotFoundServlet extends Servlet {
 
+	protected String getContentTypeForOptions() {
+		return MimeTypes.JSON;
+	}
+
 	public void doGet(Request req, Response resp) throws IOException {
 		String uri = (String)req.getAttribute("javax.servlet.error.request_uri");
 		resp.sendError(StatusCodes.NOT_FOUND, null, uri);

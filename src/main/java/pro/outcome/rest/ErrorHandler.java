@@ -18,6 +18,7 @@ class ErrorHandler {
 	
 	public static void handleException(Exception e, Request req, Response resp) {
 		try {
+			resp.setLenient(true);
 			resp.setDisableCache();
 			if(e instanceof EndpointException) {
 				EndpointException ee = (EndpointException)e;
@@ -37,11 +38,11 @@ class ErrorHandler {
 			}
 		}
 		catch(Throwable t) {
-			handleCriticalException(resp, t, e);
+			_handleCriticalException(resp, t, e);
 		}
 	}
 	
-	public static void handleCriticalException(Response response, Throwable t1, Throwable t0) {
+	private static void _handleCriticalException(Response response, Throwable t1, Throwable t0) {
 		// Log the error first:
 		_logger.severe(t1, "critical exception");
 		if(t0 != null) {

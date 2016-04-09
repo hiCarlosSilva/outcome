@@ -59,6 +59,21 @@ public class Config extends Entity<ConfigValue> {
 		return value.getValue();
 	}
 	
+	public void insert(ConfigValue value) {
+		_cache.clear();
+		super.insert(value);
+	}
+
+	public boolean update(ConfigValue value) {
+		_cache.clear();
+		return super.update(value);
+	}
+
+	public boolean save(ConfigValue value) {
+		_cache.clear();
+		return super.save(value);
+	}
+
 	public String getBaseUrl() {
 		String baseUrl = (String)getValue(Properties.BASE_URL);
 		if(baseUrl == null) {
@@ -75,9 +90,18 @@ public class Config extends Entity<ConfigValue> {
 		return e;
 	}
 	
+	// TODO change this method
 	public List<String> getAllowedOrigins() {
-		@SuppressWarnings("unchecked")
-		List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
-		return ao == null ? new ArrayList<String>(0) : ao;
+		Object tmp = getValue(Properties.ALLOWED_ORIGINS);
+		if(tmp instanceof String) {
+			List<String> list = new ArrayList<>();
+			list.add((String)tmp);
+			return list;
+		}
+		else {
+			@SuppressWarnings("unchecked")
+			List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
+			return ao == null ? new ArrayList<String>(0) : ao;
+		}		
 	}
 }
