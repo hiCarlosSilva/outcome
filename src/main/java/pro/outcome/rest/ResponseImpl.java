@@ -47,14 +47,18 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		super.addCookie(c);
 	}
 
-	public void removeCookie(String name, String path) {
+	public void removeCookie(String name, String path, String domain) {
 		Checker.checkEmpty(name);
+		Cookie c = new Cookie(name, "deleted");
 		if(path != null) {
 			Checker.checkEmpty(path);
+			c.setPath(path);
 		}
-		Cookie c = new Cookie(name, "deleted");
+		if(domain != null) {
+			Checker.checkEmpty(domain);
+			c.setDomain(domain);
+		}
 		c.setMaxAge(0);
-		c.setPath(path);
 		addCookie(c);
 	}
 

@@ -11,7 +11,7 @@ import freemarker.template.Template;
 public interface Response extends HttpServletResponse {
 
 	public boolean hasCookie(String name, String path);
-	public void removeCookie(String name, String path);
+	public void removeCookie(String name, String path, String domain);
 	public void setContentType(String contentType);
 	public void setLastModified(long timestamp);
 	public void setDisableCache();
