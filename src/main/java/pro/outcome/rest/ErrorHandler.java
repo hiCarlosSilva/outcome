@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import pro.outcome.util.Logger;
 
 
+// TODO switch error handling output depending on getContentTypeForOptions
 class ErrorHandler {
 
 	private static final String _MSG_ERROR = "[Critical] Caught unexpected error on exception handling section:";
