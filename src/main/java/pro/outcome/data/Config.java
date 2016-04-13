@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import pro.outcome.data.Field.Constraint;
+import pro.outcome.util.Checker;
 import pro.outcome.util.IllegalUsageException;
 
 
@@ -21,6 +22,9 @@ public class Config extends Entity<ConfigValue> {
 		public static final String BASE_URL = "base-url";
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
+		// TODO these need to move to the API project
+		public static final String GOOGLE_CLIENT_ID = "google-client-id";
+		public static final String GOOGLE_CLIENT_SECRET = "google-client-secret";
 	}
 	// TODO remove
 	/*
@@ -44,7 +48,8 @@ public class Config extends Entity<ConfigValue> {
 		return new Field<?>[] { name };
 	}
 
-	public Object getValue(String name) {
+	public Object getValue(String name, boolean failIfNull) {
+		Checker.checkEmpty(name);
 		ConfigValue value = null;
 		if(_cache.containsKey(name)) {
 			value = _cache.get(name);
@@ -54,9 +59,16 @@ public class Config extends Entity<ConfigValue> {
 			_cache.put(name, value);
 		}
 		if(value == null) {
+			if(failIfNull) {
+				throw new IllegalUsageException(name+" property has not been set");
+			}
 			return null;
 		}
 		return value.getValue();
+	}
+	
+	public Object getValue(String name) {
+		return getValue(name, false);
 	}
 	
 	public void insert(ConfigValue value) {
@@ -75,19 +87,11 @@ public class Config extends Entity<ConfigValue> {
 	}
 
 	public String getBaseUrl() {
-		String baseUrl = (String)getValue(Properties.BASE_URL);
-		if(baseUrl == null) {
-			throw new IllegalUsageException("base URL property has not been set");
-		}
-		return baseUrl;
+		return (String)getValue(Properties.BASE_URL, true);
 	}
 
 	public String getEnvironment() {
-		String e = (String)getValue(Properties.ENV);
-		if(e == null) {
-			throw new IllegalUsageException("environment config property has not been set");
-		}
-		return e;
+		return (String)getValue(Properties.ENV, true);
 	}
 	
 	// TODO change this method
@@ -103,5 +107,15 @@ public class Config extends Entity<ConfigValue> {
 			List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
 			return ao == null ? new ArrayList<String>(0) : ao;
 		}		
+	}
+	
+	// TODO this needs to move to the API project
+	public String getGoogleClientId() {
+		return (String)getValue(Properties.GOOGLE_CLIENT_ID, true);
+	}
+
+	// TODO this needs to move to the API project
+	public String getGoogleClientSecret() {
+		return (String)getValue(Properties.GOOGLE_CLIENT_SECRET, true);
 	}
 }

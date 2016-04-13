@@ -126,6 +126,38 @@ public class Reflection {
 		return getDeclaredMethod(false, c, name, parameterTypes);
 	}
 
+	public static Method getMethod(boolean lenient, Class<?> c, String name, Class<?> ... parameterTypes) {
+		Checker.checkNull(c);
+		Checker.checkEmpty(name);
+		try {
+			return c.getMethod(name, parameterTypes);
+		}
+		catch(Exception e) {
+			if(lenient) {
+				return null;
+			}
+			throw new ReflectionException(e);
+		}
+	}
+
+	public static Method getMethod(Class<?> c, String name, Class<?> ... parameterTypes) {
+		return getMethod(false, c, name, parameterTypes);
+	}
+	
+	public static Object invoke(Method toCall, Object target, Object ... params) {
+		Checker.checkNull(toCall);
+		Checker.checkNull(target);
+		try {
+			return toCall.invoke(target, params);
+		}
+		catch(InvocationTargetException ite) {
+			throw new ReflectionException(ite);
+		}
+		catch(IllegalAccessException iae) {
+			throw new ReflectionException(iae);
+		}
+	}
+
 	public static Object readField(Class<?> c, String fieldName, Object o) {
 		Checker.checkNull(c);
 		Checker.checkEmpty(fieldName);

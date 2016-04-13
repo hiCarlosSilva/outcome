@@ -272,6 +272,14 @@ public class Strings {
 		return sb.toString();
 	}
 
+	public static String removeWhitespace(String s) {
+		Checker.checkEmpty(s);
+		s = Strings.replaceAll(s, "\n", "");
+		s = Strings.replaceAll(s, " ", "");
+		s = Strings.replaceAll(s, "\t", "");
+		return s;
+	}
+
 	public static String eliminateRepeatedChars(String s) {
 		Checker.checkEmpty(s);
 		Set<Character> tmp = new HashSet<Character>();

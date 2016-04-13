@@ -21,6 +21,6 @@ public interface Response extends HttpServletResponse {
 	public void sendError(EndpointException e) throws IOException;
 	public void sendOk(Json content) throws IOException;
 	public void sendOk() throws IOException;
-	public void sendTemplate(Template ftl, Object data) throws IOException;
+	public void sendTemplate(Template template, Object data) throws IOException;
 	public void setLenient(boolean lenient);
 }

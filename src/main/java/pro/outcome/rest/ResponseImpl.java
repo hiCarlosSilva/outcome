@@ -147,12 +147,12 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		sendOk(null);
 	}
 	
-	public void sendTemplate(Template ftl, Object data) throws IOException {
+	public void sendTemplate(Template template, Object data) throws IOException {
 		if(!_contentTypeSet) {
 			throw new IllegalStateException("content type has not been set yet");
 		}
 		try {
-			ftl.process(data, getWriter());
+			template.process(data, getWriter());
 		}
 		catch(TemplateException te) {
 			throw new IntegrityException(te);
