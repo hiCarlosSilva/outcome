@@ -12,7 +12,7 @@ import pro.outcome.rest.Servlet;
 
 public class NotFoundServlet extends Servlet {
 
-	protected String getContentTypeForOptions() {
+	protected String getExpectedContentType() {
 		return MimeTypes.JSON;
 	}
 

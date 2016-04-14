@@ -20,14 +20,16 @@ import freemarker.template.TemplateException;
 public class ResponseImpl extends HttpServletResponseWrapper implements Response {
 
 	private final Set<String> _cookieNames;
-	private boolean _contentTypeSet;
+	private final String _contentType;
 	private boolean _lenient;
+	private boolean _committed;
+	private boolean _contentTypeSet;
 	
-	public ResponseImpl(HttpServletResponse response) {
+	public ResponseImpl(HttpServletResponse response, String contentType) {
 		super(response);
 		_cookieNames = new HashSet<String>();
-		_contentTypeSet = false;
-		_lenient = false;
+		_contentType = contentType;
+		_lenient = _committed = _contentTypeSet = false;
 	}
 
 	public boolean hasCookie(String name, String path) {
@@ -40,6 +42,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void addCookie(Cookie c) {
 		Checker.checkNull(c);
+		_checkCommitted();
 		if(hasCookie(c.getName(), c.getPath())) {
 			throw new IllegalStateException("cookie '"+_getCookieFQN(c)+"' has already been added to the response");
 		}
@@ -49,6 +52,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void removeCookie(String name, String path, String domain) {
 		Checker.checkEmpty(name);
+		_checkCommitted();
 		Cookie c = new Cookie(name, "deleted");
 		if(path != null) {
 			Checker.checkEmpty(path);
@@ -64,9 +68,13 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void setContentType(String contentType) {
 		Checker.checkEmpty(contentType);
-		if(_contentTypeSet && !_lenient) {
-			throw new IllegalStateException("content type has already been set");
+		_checkCommitted();
+		if(!_lenient) {
+			if(_contentTypeSet) {
+				throw new IllegalStateException("content type has already been set");
+			}
 		}
+		// TODO check if the Servlet API already sets the correct character set (in which case we don't need to do this)
 		if(contentType.startsWith("text")) {
 			if(contentType.indexOf("charset") == -1) {
 				contentType = contentType+"; charset="+Servlet.CHARSET;
@@ -77,10 +85,12 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void setLastModified(long timestamp) {
+		_checkCommitted();
 		setDateHeader("Last-Modified", timestamp);
 	}
 
 	public void setDisableCache() {
+		_checkCommitted();
 		setHeader("Expires", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 		setDateHeader("Last-Modified", Calendar.getInstance().getTimeInMillis()); // always modified
 		setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
@@ -91,6 +101,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 
 	public void setEnableCache() {
+		_checkCommitted();
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, c.get(Calendar.YEAR)+1);
 		setDateHeader("Expires", c.getTimeInMillis()); // Date in the future
@@ -148,9 +159,6 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 	}
 	
 	public void sendTemplate(Template template, Object data) throws IOException {
-		if(!_contentTypeSet) {
-			throw new IllegalStateException("content type has not been set yet");
-		}
 		try {
 			template.process(data, getWriter());
 		}
@@ -161,6 +169,23 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 
 	public void setLenient(boolean lenient) {
 		_lenient = lenient;
+	}
+
+	private void _checkCommitted() {
+		if(!_lenient) {
+			if(_committed) {
+				throw new IllegalStateException("response has already been committed");
+			}
+		}
+	}
+	
+	@Override
+	public PrintWriter getWriter() throws IOException {
+		if(!_contentTypeSet && !_committed && _contentType != null) {
+			setContentType(_contentType);
+		}
+		_committed = true;
+		return super.getWriter();
 	}
 
 	private String _getCookieFQN(Cookie c) {

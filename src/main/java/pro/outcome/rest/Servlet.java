@@ -46,7 +46,7 @@ public abstract class Servlet extends HttpServlet {
 		_cfg = null;
 	}
 
-	protected abstract String getContentTypeForOptions();
+	protected abstract String getExpectedContentType();
 
 	public final void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		_process(HTTP_METHOD.GET, req, resp);
@@ -70,7 +70,7 @@ public abstract class Servlet extends HttpServlet {
 
 	public final void doOptions(HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException, ServletException {
 		Request req = new RequestImpl(httpReq);
-		Response resp = new ResponseImpl(httpResp);
+		Response resp = new ResponseImpl(httpResp, getExpectedContentType());
 		super.doOptions(req, resp);
 		StringBuilder allowedMethods = new StringBuilder();
 		allowedMethods.append("OPTIONS, HEAD");
@@ -81,7 +81,7 @@ public abstract class Servlet extends HttpServlet {
 			allowedMethods.append(", ").append(HTTP_METHOD.POST);
 		}
 		resp.setHeader("Allow", allowedMethods.toString());
-		String contentType = getContentTypeForOptions();
+		String contentType = getExpectedContentType();
 		if(contentType != null) {
 			resp.setContentType(contentType);
 		}
@@ -157,7 +157,7 @@ public abstract class Servlet extends HttpServlet {
 
 	private void _process(HTTP_METHOD method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
 		Request req = new RequestImpl(httpReq);
-		Response resp = new ResponseImpl(httpResp);
+		Response resp = new ResponseImpl(httpResp, getExpectedContentType());
 		try {
 			req.setCharacterEncoding(CHARSET);
 			resp.setCharacterEncoding(CHARSET);
