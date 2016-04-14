@@ -8,6 +8,7 @@ import java.util.HashMap;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.IntegrityException;
+import pro.outcome.util.Reflection;
 
 
 public abstract class Entities {
@@ -16,7 +17,26 @@ public abstract class Entities {
 	private static final Map<String,Entity<?>> _byName = new HashMap<>();
 	private static final Map<Class<?>,Entity<?>> _byInstance = new HashMap<>();
 	// Entities for this package:
-	public static final Config config = new Config();
+	public static final Config config = load(Config.class);
+
+	public static <E extends Entity<?>> E load(Class<E> c) {
+		@SuppressWarnings("unchecked")
+		E e = (E)_byName.get(c.getSimpleName());
+		if(e != null) {
+			return e;
+		}
+		// Create:
+		e = Reflection.createObject(c);
+		// Register:
+		_byName.put(e.getName(), e);
+		if(_byInstance.containsKey(e.getInstanceClass())) {
+			throw new IntegrityException();
+		}
+		_byInstance.put(e.getInstanceClass(), e);
+		// Load:
+		e.load();
+		return e;
+	}
 	
 	public static Entity<?> getEntity(String name) {
 		Checker.checkEmpty(name);
@@ -30,18 +50,6 @@ public abstract class Entities {
 
 	public static ImmutableMap<String,Entity<? extends Instance<?>>> getEntities() {
 		return new ImmutableMap<String,Entity<? extends Instance<?>>>(_byName);
-	}
-
-	// For Facade:
-	static void register(Entity<?> e) {
-		if(_byName.containsKey(e.getName())) {
-			throw new IllegalArgumentException(e.getName()+": entity has already been registered");
-		}
-		_byName.put(e.getName(), e);
-		if(_byInstance.containsKey(e.getInstanceClass())) {
-			throw new IntegrityException();
-		}
-		_byInstance.put(e.getInstanceClass(), e);
 	}
 		
 	// INSTANCE:

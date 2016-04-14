@@ -46,6 +46,7 @@ public abstract class Entity<I extends Instance<?>> {
 	// Data management fields:
 	private final DatastoreService _ds;
 	private final Logger _logger;
+	private boolean _loaded;
 
 	@SuppressWarnings("unchecked")
 	protected Entity() {
@@ -62,7 +63,7 @@ public abstract class Entity<I extends Instance<?>> {
 		// Data management:
 		_ds = DatastoreServiceFactory.getDatastoreService();
 		_logger = Logger.get(getClass());
-		Entities.register(this);
+		_loaded = false;
 	}
 
 	protected Logger getLogger() {
@@ -129,6 +130,8 @@ public abstract class Entity<I extends Instance<?>> {
 	
 	// Data management methods:
 	public void insert(I i) {
+		Checker.checkNull(i);
+		_checkLoaded();
 		if(i.isPersisted()) {
 			throw new IllegalArgumentException("entity has already been persisted");
 		}
@@ -181,6 +184,8 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 
 	public boolean update(I i) {
+		Checker.checkNull(i);
+		_checkLoaded();
 		_checkPersisted(i);
 		if(!i.hasUpdates()) {
 			return false;
@@ -206,6 +211,8 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 
 	public boolean save(I i) {
+		Checker.checkNull(i);
+		_checkLoaded();
 		I existing = findSingle(i.getNaturalKeyAsArg());
 		if(existing == null) {
 			insert(i);
@@ -222,6 +229,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public void delete(I i) {
 		Checker.checkNull(i);
+		_checkLoaded();
 		_checkPersisted(i);
 		_logger.info("deleting {} with id {}", getInstanceName(), i.getId());
 		// Process dependencies:
@@ -260,6 +268,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public I find(Long id) {
 		Checker.checkNull(id);
+		_checkLoaded();
 		try {
 			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getName(), id);
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
@@ -273,6 +282,7 @@ public abstract class Entity<I extends Instance<?>> {
 	
 	public I findSingle(QueryArg ... params) {
 		Checker.checkEmpty(params);
+		_checkLoaded();
 		List<Filter> filters = new ArrayList<>(params.length);
 		QueryArg idArg = null;
 		for(QueryArg p : params) {
@@ -317,11 +327,20 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 	
 	public pro.outcome.data.Query<I> find(QueryArg ... params) {
+		_checkLoaded();
 		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
 		_logger.info("running query: {}", pq);
 		return new pro.outcome.data.Query<I>(pq, _instanceType);
 	}
 	
+	// For Entities:
+	void load() {
+		if(_loaded) {
+			throw new IllegalStateException("already loaded");
+		}
+		_loaded = true;
+	}
+
 	@SuppressWarnings("unchecked")
 	private <T> Field<T> _addField(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Field.OnDelete onDelete, Constraint ... constraints) {
 		Checker.checkNull(c);
@@ -366,6 +385,12 @@ public abstract class Entity<I extends Instance<?>> {
 				}
 			}
 			addUniqueConstraint(fields);
+		}
+	}
+
+	private void _checkLoaded() {
+		if(!_loaded) {
+			throw new IllegalStateException(getName()+" has not been loaded (see Entities.load)");
 		}
 	}
 

@@ -3,6 +3,7 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.data;
+import java.lang.reflect.ParameterizedType;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -35,13 +36,19 @@ public abstract class Instance<E extends Entity<?>> {
 	}
 	
 	// INSTANCE:
+	private final Class<E> _parentType;
 	private final E _parent;
 	private com.google.appengine.api.datastore.Entity _e;
 	private final Map<Field<?>,Object> _updates;
 	
 	@SuppressWarnings("unchecked")
 	protected Instance() {
-		_parent = (E)Entities.getEntityForInstance(getClass());
+		_parentType = ((Class<E>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+		E parent = (E)Entities.getEntityForInstance(getClass());
+		if(parent == null) {
+			parent = Entities.load(_parentType);
+		}
+		_parent = parent;
 		_e = new com.google.appengine.api.datastore.Entity(getEntity().getName());
 		_updates = new HashMap<>();
 	}
