@@ -22,9 +22,6 @@ public class Config extends Entity<ConfigValue> {
 		public static final String BASE_URL = "base-url";
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
-		// TODO these need to move to the API project
-		public static final String GOOGLE_CLIENT_ID = "google-client-id";
-		public static final String GOOGLE_CLIENT_SECRET = "google-client-secret";
 	}
 	// TODO remove
 	/*
@@ -107,15 +104,5 @@ public class Config extends Entity<ConfigValue> {
 			List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
 			return ao == null ? new ArrayList<String>(0) : ao;
 		}		
-	}
-	
-	// TODO this needs to move to the API project
-	public String getGoogleClientId() {
-		return (String)getValue(Properties.GOOGLE_CLIENT_ID, true);
-	}
-
-	// TODO this needs to move to the API project
-	public String getGoogleClientSecret() {
-		return (String)getValue(Properties.GOOGLE_CLIENT_SECRET, true);
 	}
 }

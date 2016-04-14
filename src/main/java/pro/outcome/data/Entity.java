@@ -13,13 +13,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.lang.reflect.ParameterizedType;
-import pro.outcome.util.Checker;
-import pro.outcome.util.ImmutableMap;
-import pro.outcome.util.Logger;
-import pro.outcome.util.Strings;
-import pro.outcome.util.IntegrityException;
-import pro.outcome.util.IllegalUsageException;
-import pro.outcome.data.Field.Constraint;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -30,6 +23,13 @@ import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.PreparedQuery;
+import pro.outcome.util.Checker;
+import pro.outcome.util.ImmutableMap;
+import pro.outcome.util.Logger;
+import pro.outcome.util.Strings;
+import pro.outcome.util.IntegrityException;
+import pro.outcome.util.IllegalUsageException;
+import pro.outcome.data.Field.Constraint;
 
 
 public abstract class Entity<I extends Instance<?>> {
