@@ -9,7 +9,7 @@ import javax.servlet.http.Cookie;
 
 public interface Request extends HttpServletRequest {
 
-	public static enum HTTP_METHOD {GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE};
+	public static enum HttpMethod {GET, POST, PUT, DELETE, HEAD, OPTIONS, TRACE};
 
 	// TODO make a note in the documentation that cookies sent by the browser only contain name=value
 	// in the header, since the browser only returns cookies visible to the requesting server resource.

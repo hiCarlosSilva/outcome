@@ -11,7 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import pro.outcome.rest.Request.HTTP_METHOD;
+import pro.outcome.rest.Request.HttpMethod;
 import pro.outcome.data.Entities;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
@@ -49,23 +49,23 @@ public abstract class Servlet extends HttpServlet {
 	protected abstract String getExpectedContentType();
 
 	public final void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.GET, req, resp);
+		_process(HttpMethod.GET, req, resp);
 	}
 
 	public final void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.POST, req, resp);
+		_process(HttpMethod.POST, req, resp);
 	}
 
 	public final void doTrace(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.TRACE, req, resp);
+		_process(HttpMethod.TRACE, req, resp);
 	}
 	
 	public final void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.PUT, req, resp);
+		_process(HttpMethod.PUT, req, resp);
 	}
 
 	public final void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		_process(HTTP_METHOD.DELETE, req, resp);
+		_process(HttpMethod.DELETE, req, resp);
 	}
 
 	public final void doOptions(HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException, ServletException {
@@ -75,10 +75,10 @@ public abstract class Servlet extends HttpServlet {
 		StringBuilder allowedMethods = new StringBuilder();
 		allowedMethods.append("OPTIONS, HEAD");
 		if(_doGetOverridden) {
-			allowedMethods.append(", ").append(HTTP_METHOD.GET);
+			allowedMethods.append(", ").append(HttpMethod.GET);
 		}
 		if(_doPostOverridden) {
-			allowedMethods.append(", ").append(HTTP_METHOD.POST);
+			allowedMethods.append(", ").append(HttpMethod.POST);
 		}
 		resp.setHeader("Allow", allowedMethods.toString());
 		String contentType = getExpectedContentType();
@@ -155,7 +155,7 @@ public abstract class Servlet extends HttpServlet {
 		}
 	}
 
-	private void _process(HTTP_METHOD method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
+	private void _process(HttpMethod method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
 		Request req = new RequestImpl(httpReq);
 		Response resp = new ResponseImpl(httpResp, getExpectedContentType());
 		try {
@@ -167,13 +167,13 @@ public abstract class Servlet extends HttpServlet {
 				p.process(req, resp);
 			}
 			// Process request:
-			if(method == HTTP_METHOD.GET) {
+			if(method == HttpMethod.GET) {
 				if(!_doGetOverridden) {
 					throw new MethodNotAllowedException(method);
 				}
 				doGet(req, resp);
 			}
-			else if(method == HTTP_METHOD.POST) {
+			else if(method == HttpMethod.POST) {
 				if(!_doPostOverridden) {
 					throw new MethodNotAllowedException(method);
 				}

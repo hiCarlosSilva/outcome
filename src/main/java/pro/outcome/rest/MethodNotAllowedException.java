@@ -7,7 +7,7 @@ package pro.outcome.rest;
 
 public class MethodNotAllowedException extends EndpointException {
 
-	public MethodNotAllowedException(Request.HTTP_METHOD method) {
+	public MethodNotAllowedException(Request.HttpMethod method) {
 		super(StatusCodes.METHOD_NOT_ALLOWED, method);
 	}
 

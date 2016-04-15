@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class TimeValue implements Cloneable, Comparable<TimeValue> {
 
-	public static enum MEASURE {
+	public static enum Measure {
 		DAYS,
 		HOURS,
 		MINUTES,
@@ -16,7 +16,7 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 		MILLISECONDS
 	}
 
-	public static long convert(long value, MEASURE initialMeasure, MEASURE finalMeasure) {
+	public static long convert(long value, Measure initialMeasure, Measure finalMeasure) {
 		return new TimeValue(value, initialMeasure).getAs(finalMeasure);
 	}
 
@@ -31,7 +31,7 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 		_milliseconds = date.getTime();
 	}
 	
-	public TimeValue(long value, MEASURE measure) {
+	public TimeValue(long value, Measure measure) {
 		Checker.checkMinValue(value, 0);
 		Checker.checkNull(measure);
 		switch(measure) {
@@ -95,21 +95,21 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 		}
 	}
 
-	public long getAs(MEASURE measure) {
+	public long getAs(Measure measure) {
 		Checker.checkNull(measure);
-		if(measure == MEASURE.MILLISECONDS) {
+		if(measure == Measure.MILLISECONDS) {
 			return _milliseconds;
 		}
-		else if(measure == MEASURE.SECONDS) {
+		else if(measure == Measure.SECONDS) {
 			return _milliseconds/Factors.second;
 		}
-		else if(measure == MEASURE.MINUTES) {
+		else if(measure == Measure.MINUTES) {
 			return _milliseconds/Factors.minute;
 		}
-		else if(measure == MEASURE.HOURS) {
+		else if(measure == Measure.HOURS) {
 			return _milliseconds/Factors.hour;
 		}
-		else if(measure == MEASURE.DAYS) {
+		else if(measure == Measure.DAYS) {
 			return _milliseconds/Factors.day;
 		}
 		else {
@@ -118,23 +118,23 @@ public class TimeValue implements Cloneable, Comparable<TimeValue> {
 	}
 
 	public long days() {
-		return getAs(MEASURE.DAYS);
+		return getAs(Measure.DAYS);
 	}
 
 	public long hours() {
-		return getAs(MEASURE.HOURS);
+		return getAs(Measure.HOURS);
 	}
 
 	public long minutes() {
-		return getAs(MEASURE.MINUTES);
+		return getAs(Measure.MINUTES);
 	}
 
 	public long seconds() {
-		return getAs(MEASURE.SECONDS);
+		return getAs(Measure.SECONDS);
 	}
 
 	public long milliseconds() {
-		return getAs(MEASURE.MILLISECONDS);
+		return getAs(Measure.MILLISECONDS);
 	}
 
 	public TimeValue clone() {
