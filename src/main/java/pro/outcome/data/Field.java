@@ -107,6 +107,10 @@ public class Field<T> {
 		if(value == null) {
 			return null;
 		}
+		// Convert enum to String:
+		if(_type.isEnum()) {
+			value = value.toString();
+		}
 		// Convert foreign entities to their id's:
 		if(Instance.class.isAssignableFrom(_type)) {
 			Instance<?> i = (Instance<?>)value;
@@ -120,11 +124,16 @@ public class Field<T> {
 	}
 	
 	// For Instance:
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	T toObject(Object value) {
 		if(value == null) {
 			return null;
 		}
+		// Convert String to enum:
+		if(_type.isEnum()) {
+			return (T)Enum.valueOf((Class<? extends Enum>)_type, value.toString());
+		}
+		// Convert foreign key to Instance:
 		if(_foreignKey) {
 			if(_related == null) {
 				_related = Entities.getEntityForInstance(_type);
