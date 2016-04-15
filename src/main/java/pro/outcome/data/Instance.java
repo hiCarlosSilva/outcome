@@ -15,7 +15,7 @@ import pro.outcome.util.ConstructorNotFoundException;
 import pro.outcome.util.ConstructorNotVisibleException;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Reflection;
-import pro.outcome.util.Strings;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public abstract class Instance<E extends Entity<?>> {
@@ -220,7 +220,7 @@ public abstract class Instance<E extends Entity<?>> {
 	private void _checkField(Field<?> f) {
 		// Check if setting a field that pertains to this entity:
 		if(!getEntity().getFields().containsValue(f)) {
-			throw new IllegalArgumentException(Strings.expand("field {} cannot be used in entity {}", f.getFullName(), getEntity().getName()));
+			throw new IllegalArgumentException(x("field {} cannot be used in entity {}", f.getFullName(), getEntity().getName()));
 		}
 	}
 

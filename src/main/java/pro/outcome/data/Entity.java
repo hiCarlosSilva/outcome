@@ -26,10 +26,10 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.Logger;
-import pro.outcome.util.Strings;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.IllegalUsageException;
 import pro.outcome.data.Field.Constraint;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public abstract class Entity<I extends Instance<?>> {
@@ -115,7 +115,7 @@ public abstract class Entity<I extends Instance<?>> {
 		Checker.checkDuplicateElements(fields);
 		if(fields.length == 1) {
 			if(fields[0].isUnique()) {
-				throw new IllegalArgumentException(Strings.expand("field {} is unique, do not add it as a constraint", fields[0]));
+				throw new IllegalArgumentException(x("field {} is unique, do not add it as a constraint", fields[0]));
 			}
 			else {
 				throw new IllegalArgumentException("constraints must have more than one field (use UNIQUE instead)");
@@ -123,7 +123,7 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 		UniqueConstraint uc = new UniqueConstraint(fields);
 		if(_uConstraints.contains(uc)) {
-			throw new IllegalArgumentException(Strings.expand("a unique constraint with fields {} already exists", uc));
+			throw new IllegalArgumentException(x("a unique constraint with fields {} already exists", uc));
 		}
 		_uConstraints.add(uc);
 	}
@@ -376,7 +376,7 @@ public abstract class Entity<I extends Instance<?>> {
 			if(fields != null) {
 				if(fields.length == 1) {
 					if(!fields[0].isUnique()) {
-						throw new IllegalUsageException(Strings.expand("field {} cannot be a natural key because it is not unique", fields[0]));
+						throw new IllegalUsageException(x("field {} cannot be a natural key because it is not unique", fields[0]));
 					}
 					else {
 						// We don't want to add a single field as a constraint:

@@ -4,8 +4,8 @@
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.data;
 import pro.outcome.util.Arrays;
-import pro.outcome.util.Strings;
 import pro.outcome.util.IntegrityException;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public class Field<T> {
@@ -116,7 +116,7 @@ public class Field<T> {
 			Instance<?> i = (Instance<?>)value;
 			// Validate that foreign instance key is set:
 			if(!i.isPersisted()) {
-				throw new IllegalStateException(Strings.expand("foreign entity [{}] has not been persisted", i));
+				throw new IllegalStateException(x("foreign entity [{}] has not been persisted", i));
 			}
 			return i.getId();
 		}

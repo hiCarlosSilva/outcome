@@ -3,10 +3,10 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.data;
-import pro.outcome.util.Strings;
-import pro.outcome.util.IntegrityException;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import pro.outcome.util.IntegrityException;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public class QueryArg {
@@ -22,7 +22,7 @@ public class QueryArg {
 	// For Field
 	<T> QueryArg(Field<T> field, Object value, Operator op) {
 		if(!field.isIndexed()) {
-			throw new IllegalArgumentException(Strings.expand("cannot query field {} because it is not indexed", field.getFullName()));
+			throw new IllegalArgumentException(x("cannot query field {} because it is not indexed", field.getFullName()));
 		}
 		_field = field;
 		_value = value;

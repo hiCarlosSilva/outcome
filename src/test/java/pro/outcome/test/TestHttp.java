@@ -6,14 +6,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import pro.outcome.util.Strings;
 import pro.outcome.util.HttpClient;
-import static pro.outcome.util.Printer.*;
+import static pro.outcome.util.Shortcuts.*;
 
 
 // TODO make this work with Jetty, so that we do not have dependencies with the Connector API server 
 public class TestHttp {
 
 	// TYPE:
-	public static final String SERVER = "https://localhost:8080";
+	public static final String SERVER = "http://localhost:8080";
 
 	public static void main(String[] args) throws Exception {
 		TestHttp test = new TestHttp();
@@ -38,7 +38,7 @@ public class TestHttp {
 		print("Testing POST {}... ", url);
 		Map<String,String> params = new HashMap<>();
 		params.put("username", "lisa.connector@gmail.com");
-		params.put("password", "lisaSmith");
+		params.put("password", "IntersectionLabs");
 		String s = HttpClient.post(url, params);
 		s = Strings.removeWhitespace(s);
 		assertEquals(s, "{\"header\":{\"status\":\"0\"}}");

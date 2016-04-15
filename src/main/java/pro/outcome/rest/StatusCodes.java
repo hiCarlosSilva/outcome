@@ -6,8 +6,7 @@ package pro.outcome.rest;
 import java.util.Map;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletResponse;
-
-import pro.outcome.util.Strings;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public class StatusCodes {
@@ -16,7 +15,7 @@ public class StatusCodes {
 	
 	protected static StatusCode add(int status, String message, int httpStatus) {
 		if(_statusCodes.containsKey(status)) {
-			throw new IllegalArgumentException(Strings.expand("status code {} already exists", status));
+			throw new IllegalArgumentException(x("status code {} already exists", status));
 		}
 		StatusCode code = new StatusCode(status, message, httpStatus);
 		_statusCodes.put(status, code);

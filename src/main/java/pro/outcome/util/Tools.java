@@ -8,23 +8,9 @@ import java.util.Comparator;
 import java.util.Locale;
 
 
+// TODO methods in this class are not used anywhere
 public class Tools {
 
-	public static void handleCriticalError(String message, Throwable t) {
-		// TODO this must attempt to log in the error log as well.
-		System.err.println("[CRITICAL ERROR]: "+(Strings.isEmpty(message) ? "" : message));
-		if(t != null) {
-			t.printStackTrace(System.err);
-		}
-		else {
-			System.err.println("(null exception)");
-		}
-	}
-
-	public static void handleCriticalError(Throwable t) {
-		handleCriticalError(null, t);
-	}
-	
 	public static boolean contains(Collection<?> c, Object o, Comparator<Object> comparator) {
 		Checker.checkNull(c);
 		Checker.checkNull(comparator);

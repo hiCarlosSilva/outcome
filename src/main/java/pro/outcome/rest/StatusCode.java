@@ -3,7 +3,7 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
-import pro.outcome.util.Strings;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public class StatusCode {
@@ -23,7 +23,7 @@ public class StatusCode {
 			// TODO add a check. If message expects params, fail
 			return _message;
 		}
-		return Strings.expand(_message, params);
+		return x(_message, params);
 	}
 	
 	public String toString() {
