@@ -23,14 +23,6 @@ public class Config extends Entity<ConfigValue> {
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
 	}
-	// TODO remove
-	/*
-	public class Environments extends Flags {
-		public static final Flag Dev = createFlag(Environments.class, "d", "Development");
-		public static final Flag Test = createFlag("t", "Test");
-		public static final Flag Live = createFlag("l", "Live");
-	}
-	*/
 	
 	// INSTANCE:
 	private final Map<String,ConfigValue> _cache;

@@ -139,8 +139,6 @@ public abstract class Servlet extends HttpServlet {
 
 	private void _checkAllowedOrigins(Request req, Response resp) throws IOException {
 		String origin = req.getOrigin();
-		// TODO remove
-		getLogger().info("received request from origin: {}", origin);
 		List<String> allowedOrigins = Entities.config.getAllowedOrigins();
 		if(allowedOrigins.contains(origin)) {
 			// Enable Cross-Origin Resource Sharing (see link below for details)
@@ -150,7 +148,6 @@ public abstract class Servlet extends HttpServlet {
 			resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
 		}
 		else {
-			// TODO remove
 			getLogger().info("origin '{}' is not allowed", origin);
 		}
 	}

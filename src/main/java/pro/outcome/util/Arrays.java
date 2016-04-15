@@ -24,7 +24,7 @@ public class Arrays {
 		return array[array.length-1];
 	}
 
-	public static int find(Object o, Object[] in) {
+	public static int indexOf(Object o, Object[] in) {
 		Checker.checkNull(o);
 		Checker.checkNull(in);
 		for(int i=0; i<in.length; i++) {
@@ -36,7 +36,7 @@ public class Arrays {
 	}
 
 	public static boolean contains(Object o, Object[] in) {
-		return find(o, in) != -1;
+		return indexOf(o, in) != -1;
 	}
 
 	public static Object[] toArrayOf(Class<?> c, Object[] array) {

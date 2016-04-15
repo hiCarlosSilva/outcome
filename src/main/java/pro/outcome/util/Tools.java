@@ -35,7 +35,7 @@ public class Tools {
 		Checker.checkEmpty(language);
 		Checker.checkEmpty(country);
 		Locale l = new Locale(language, country);
-		if(Arrays.find(l, Locale.getAvailableLocales()) == -1) {
+		if(Arrays.indexOf(l, Locale.getAvailableLocales()) == -1) {
 			throw new IllegalArgumentException("locale '"+language+"_"+country+"' is not supported");
 		}
 		return l;

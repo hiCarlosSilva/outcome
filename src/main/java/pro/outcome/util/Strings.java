@@ -294,20 +294,20 @@ public class Strings {
 		return sb.toString();
 	}
 	
-	public static int find(String s, String[] in, boolean ignoreCase) {
+	public static int indexOf(String s, String[] in, boolean ignoreCase) {
 		if(ignoreCase) {
-			return findIgnoreCase(s, in);
+			return indexOfIgnoreCase(s, in);
 		}
 		else {
-			return Arrays.find(s, in);
+			return Arrays.indexOf(s, in);
 		}
 	}
 
-	public static int find(String s, String[] in) {
-		return find(s, in, false);
+	public static int indexOf(String s, String[] in) {
+		return indexOf(s, in, false);
 	}
 
-	public static int findIgnoreCase(String s, String[] in) {
+	public static int indexOfIgnoreCase(String s, String[] in) {
 		Checker.checkNull(s);
 		Checker.checkNull(in);
 		for(int i=0; i<in.length; i++) {
