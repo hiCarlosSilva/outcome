@@ -11,6 +11,7 @@ import freemarker.template.*;
 public class TestFreemarker {
 
 	private static final Configuration _cfg = new Configuration();
+
 	@BeforeClass
 	public static void setUp() throws Exception {
 		//cfg.setDirectoryForTemplateLoading(new File("/where/you/store/templates"));

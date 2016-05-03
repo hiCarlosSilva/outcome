@@ -3,9 +3,13 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.util;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import static pro.outcome.util.Shortcuts.*;
 
 
 // TODO methods in this class are not used anywhere
@@ -61,5 +65,19 @@ public class Tools {
 			}
 		}
 		return result;
+	}
+	
+	public static void printRequestParameters(HttpServletRequest req, PrintWriter out) {
+		Checker.checkNull(req);
+		if(out == null) {
+			out = new PrintWriter(System.out);
+		}
+		@SuppressWarnings("unchecked")
+		Map<String,String[]> params = req.getParameterMap();
+		for(String key : params.keySet()) {
+			String[] values = params.get(key);
+			out.println(x("Parameter ['{}'] = ['{}']", key, Arrays.toString(values)));
+		}
+		out.flush();
 	}
 }
