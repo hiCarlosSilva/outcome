@@ -4,6 +4,8 @@
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
 import java.net.URLDecoder;
+import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
@@ -153,5 +155,18 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 
 	public Double getDoubleParameter(String name) {
 		return getDoubleParameter(name, false);
+	}
+	
+	public JsonObject readDataAsJson() throws IOException {
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+	    BufferedReader reader = getReader();
+	    while((line = reader.readLine()) != null) {
+		      sb.append(line);
+	    }
+		if(sb.length() == 0) {
+			return null;
+		}
+		return JsonObject.parse(URLDecoder.decode(sb.toString(), Servlet.CHARSET));
 	}
 }

@@ -3,6 +3,7 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Cookie;
 
@@ -26,6 +27,7 @@ public interface Request extends HttpServletRequest {
 	public Float		getFloatParameter(String name, boolean required);
 	public Double		getDoubleParameter(String name);
 	public Double		getDoubleParameter(String name, boolean required);
+	public JsonObject	readDataAsJson() throws IOException;
 	
 	public String getOrigin();
 	public String getServerPath();
