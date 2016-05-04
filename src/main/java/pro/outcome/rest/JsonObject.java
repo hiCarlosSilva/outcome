@@ -5,7 +5,10 @@
 package pro.outcome.rest;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
+import java.util.AbstractList;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import pro.outcome.util.Checker;
@@ -35,6 +38,14 @@ public class JsonObject {
 		_json = new JSONObject();
 	}
 	
+	public int hashCode() {
+		return _json.hashCode();
+	}
+	
+	public String toString() {
+		return _json.toString();
+	}
+
 	@SuppressWarnings("unchecked")
 	public JsonObject put(String name, Object value) {
 		Checker.checkEmpty(name);
@@ -45,6 +56,17 @@ public class JsonObject {
 		}
 		_json.put(name, value);
 		return this;
+	}
+	
+	public Object remove(String name) {
+		Checker.checkEmpty(name);
+		Object value = _json.remove(name);
+		if(value != null) {
+			if(value instanceof JSONObject) {
+				value = new JsonObject((JSONObject)value);
+			}
+		}
+		return value;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -66,6 +88,67 @@ public class JsonObject {
 		return new JsonObject(json);
 	}
 	
+	public <E> List<E> getListOf(String name, Class<E> type) {
+		Checker.checkEmpty(name);
+		Checker.checkNull(type);
+		final JSONArray array = (JSONArray)_json.get(name);
+		final boolean jsonObject = type == JsonObject.class;
+		if(array == null) {
+			return null;
+		}
+		return new AbstractList<E>() {
+			
+			public int size() {
+				return array.size();
+			}
+			
+			@SuppressWarnings("unchecked")
+			public E get(int index) {
+				if(jsonObject) {
+					JsonObject json = new JsonObject((JSONObject)array.get(index));
+					return (E)json;
+				}
+				else {
+					return (E)array.get(index);
+				}
+			}
+			
+			@SuppressWarnings("unchecked")
+			public E set(int index, E element) {
+				if(jsonObject) {
+					E json = get(index);
+					array.set(index, ((JsonObject)element)._json);
+					return json;
+				}
+				else {
+					return (E)array.set(index, element);
+				}
+			}
+			
+			@SuppressWarnings("unchecked")
+			public void add(int index, E element) {
+				if(jsonObject) {
+					array.add(((JsonObject)element)._json);
+				}
+				else {
+					array.add(index, element);
+				}
+			}
+			
+			@SuppressWarnings("unchecked")
+			public E remove(int index) {
+				if(jsonObject) {
+					E json = get(index);
+					array.remove(index);
+					return json;
+				}
+				else {
+					return (E)array.remove(index);
+				}
+			}
+		};
+	}
+
 	public void write(Writer out, boolean prettyPrint) throws IOException {
 		Checker.checkNull(out);
 		_json.writeJSONString(out);

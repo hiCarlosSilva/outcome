@@ -19,6 +19,7 @@ public class TestHttp {
 		TestHttp test = new TestHttp();
 		test.testHttpGet();
 		test.testHttpPost();
+		println("All done.");
 	}
 
 	// INSTANCE:
@@ -28,7 +29,7 @@ public class TestHttp {
 		print("Testing GET {}... ", url);
 		String s = HttpClient.get(url);
 		s = Strings.removeWhitespace(s);
-		assertEquals(s, "{\"header\":{\"status\":\"0\"},\"content\":{\"supported\":\"true\"}}");
+		assertEquals("{\"content\":{\"supported\":true},\"header\":{\"status\":0}}", s);
 		println("done.");
 	}
 
@@ -41,7 +42,7 @@ public class TestHttp {
 		params.put("password", "IntersectionLabs");
 		String s = HttpClient.post(url, params);
 		s = Strings.removeWhitespace(s);
-		assertEquals(s, "{\"header\":{\"status\":\"0\"}}");
+		assertEquals("{\"header\":{\"status\":0}}", s);
 		println("done.");
 	}
 }
