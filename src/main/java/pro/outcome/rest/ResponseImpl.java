@@ -108,22 +108,22 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		setHeader("Last-Modified", "Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 	}
 
-	public void sendError(StatusCode status, Json jContent, Object ... params) throws IOException {
+	public void sendError(StatusCode status, JsonObject jContent, Object ... params) throws IOException {
 		Checker.checkNull(status);
 		setContentType(MimeTypes.JSON);
 		setStatus(status.httpCode);
-		Json jResponse = new Json();
-		Json jHeader = jResponse.add("header");
-		jHeader.add("status", status.code);
+		JsonObject jResponse = new JsonObject();
+		JsonObject jHeader = jResponse.addChild("header");
+		jHeader.put("status", status.code);
 		if(status != StatusCodes.OK) {
 			String message = status.expand(params);
-			jHeader.add("message", message);
+			jHeader.put("message", message);
 		}
 		if(jContent != null) {
-			jResponse.add("content", jContent);
+			jResponse.put("content", jContent);
 		}
 		PrintWriter out = getWriter();
-		jResponse.print(out);
+		jResponse.write(out);
 		out.close();
 	}
 	
@@ -138,19 +138,19 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		Checker.checkNull(e);
 		setContentType(MimeTypes.JSON);
 		setStatus(e.getErrorCode().httpCode);
-		Json jResponse = new Json();
-		Json jHeader = jResponse.add("header");
-		jHeader.add("status", e.getErrorCode().code);
-		jHeader.add("message", e.getMessage());
+		JsonObject jResponse = new JsonObject();
+		JsonObject jHeader = jResponse.addChild("header");
+		jHeader.put("status", e.getErrorCode().code);
+		jHeader.put("message", e.getMessage());
 		if(e.getContent() != null) {
-			jResponse.add("content", e.getContent());
+			jResponse.put("content", e.getContent());
 		}
 		PrintWriter out = getWriter();
-		jResponse.print(out);
+		jResponse.write(out);
 		out.close();
 	}
 
-	public void sendOk(Json jContent) throws IOException {
+	public void sendOk(JsonObject jContent) throws IOException {
 		sendError(StatusCodes.OK, jContent);
 	}
 

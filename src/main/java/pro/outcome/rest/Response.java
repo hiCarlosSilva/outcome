@@ -16,11 +16,11 @@ public interface Response extends HttpServletResponse {
 	public void setLastModified(long timestamp);
 	public void setDisableCache();
 	public void setEnableCache();
-	public void sendError(StatusCode status, Json content, Object ... params) throws IOException;
+	public void sendOk(JsonObject content) throws IOException;
+	public void sendOk() throws IOException;
+	public void sendError(StatusCode status, JsonObject content, Object ... params) throws IOException;
 	public void sendError(StatusCode status) throws IOException;
 	public void sendError(EndpointException e) throws IOException;
-	public void sendOk(Json content) throws IOException;
-	public void sendOk() throws IOException;
 	public void sendTemplate(Template template, Object data) throws IOException;
 	public void setLenient(boolean lenient);
 }
