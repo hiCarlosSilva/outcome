@@ -89,13 +89,13 @@ public abstract class Servlet extends HttpServlet {
 	}
 
 	// Note: this method stub is included so that subclasses don't have to override it.
-	protected void doGet(Request req, Response resp) throws IOException {
+	protected void doGet(Request req, Response resp) throws Exception {
 		// Code should never get here:
 		throw new IntegrityException();
 	}
 
 	// Note: this method stub is included so that subclasses don't have to override it.
-	protected void doPost(Request req, Response resp) throws IOException {
+	protected void doPost(Request req, Response resp) throws Exception {
 		// Code should never get here:
 		throw new IntegrityException();
 	}
