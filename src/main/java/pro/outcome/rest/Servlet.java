@@ -140,6 +140,10 @@ public abstract class Servlet extends HttpServlet {
 
 	private void _checkAllowedOrigins(Request req, Response resp) throws IOException {
 		String origin = req.getOrigin();
+		if(origin == null) {
+			getLogger().log(info("received null Origin header"));
+			return;
+		}
 		List<String> allowedOrigins = Entities.config.getAllowedOrigins();
 		if(allowedOrigins.contains(origin)) {
 			// Enable Cross-Origin Resource Sharing (see link below for details)

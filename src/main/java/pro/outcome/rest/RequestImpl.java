@@ -38,8 +38,10 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 	public String getOrigin() {
 		String origin = getHeader("origin");
 		if(origin == null) {
-			origin = getHeader("host");
+			return null;
 		}
+		// TODO do we really need this?
+		// TODO where is actually the Origin header used?
 		if(origin.startsWith("http://") || origin.startsWith("https://")) {
 			return origin;
 		}
