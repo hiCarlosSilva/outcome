@@ -4,8 +4,9 @@
 // in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.rest;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
-import pro.outcome.util.Logger;
+import static pro.outcome.util.Shortcuts.*;
 
 
 // TODO switch error handling output depending on getContentTypeForOptions
@@ -15,7 +16,7 @@ class ErrorHandler {
 	private static final String _MSG_ORIGINAL = "[Critical] Original application error was:";
 	private static final String _MSG_NO_MSG = "[Critical] There was no error reported by the application before the critical error";
 	private static final String _MSG_SECOND = "[Critical] Caught second unexpected error on error-handler servlet";
-	private static final Logger _logger = Logger.get(ErrorHandler.class);
+	private static final Logger _logger = Logger.getLogger(ErrorHandler.class.getName());
 	
 	public static void handleException(Exception e, Request req, Response resp) {
 		try {
@@ -33,7 +34,7 @@ class ErrorHandler {
 				// TODO we need to translate the error message to something intelligible
 				// TODO move logging into ResponseImpl, we are repeating "expand"
 				String message = StatusCodes.UNEXPECTED.expand(e.getMessage());
-				_logger.severe(e, message);
+				_logger.log(severe(e, message));
 				// Send response:
 				resp.sendError(StatusCodes.UNEXPECTED, null, e.getMessage());
 			}
@@ -45,9 +46,9 @@ class ErrorHandler {
 	
 	private static void _handleCriticalException(Response response, Throwable t1, Throwable t0) {
 		// Log the error first:
-		_logger.severe(t1, "critical exception");
+		_logger.log(severe(t1, "critical exception"));
 		if(t0 != null) {
-			_logger.severe(t0, _MSG_ORIGINAL);
+			_logger.log(severe(t0, _MSG_ORIGINAL));
 		}
 		else {
 			_logger.severe(_MSG_NO_MSG);
@@ -71,7 +72,7 @@ class ErrorHandler {
 		}
 		catch(Throwable t2) {
 			// Unrecoverable:
-			_logger.severe(t2, _MSG_SECOND);
+			_logger.log(severe(t2, _MSG_SECOND));
 		}
 	}
 }

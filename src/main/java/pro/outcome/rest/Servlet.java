@@ -6,20 +6,21 @@ package pro.outcome.rest;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import pro.outcome.rest.Request.HttpMethod;
 import pro.outcome.data.Entities;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
-import pro.outcome.util.Logger;
 import pro.outcome.util.Reflection;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateExceptionHandler;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public abstract class Servlet extends HttpServlet {
@@ -40,7 +41,7 @@ public abstract class Servlet extends HttpServlet {
 		super();
 		_pre = new ArrayList<Processor>();
 		_post = new ArrayList<Processor>();
-		_logger = Logger.get(getClass());
+		_logger = Logger.getLogger(getClass().getName());
 		_doGetOverridden = Reflection.getDeclaredMethod(true, getClass(), "doGet", Request.class, Response.class) != null;
 		_doPostOverridden = Reflection.getDeclaredMethod(true, getClass(), "doPost", Request.class, Response.class) != null;
 		_cfg = null;
@@ -148,7 +149,7 @@ public abstract class Servlet extends HttpServlet {
 			resp.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
 		}
 		else {
-			getLogger().info("origin '{}' is not allowed", origin);
+			getLogger().log(info("origin '{}' is not allowed", origin));
 		}
 	}
 

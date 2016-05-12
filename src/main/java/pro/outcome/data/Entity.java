@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Logger;
 import java.lang.reflect.ParameterizedType;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -25,7 +26,6 @@ import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.PreparedQuery;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
-import pro.outcome.util.Logger;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.IllegalUsageException;
 import pro.outcome.data.Field.Constraint;
@@ -62,7 +62,7 @@ public abstract class Entity<I extends Instance<?>> {
 		timeUpdated = addField(Date.class, "timeUpdated", true, new Generators.Now(), Constraint.MANDATORY, Constraint.READ_ONLY);		
 		// Data management:
 		_ds = DatastoreServiceFactory.getDatastoreService();
-		_logger = Logger.get(getClass());
+		_logger = Logger.getLogger(getClass().getName());
 		_loaded = false;
 	}
 
@@ -178,9 +178,9 @@ public abstract class Entity<I extends Instance<?>> {
 			i.flush(f, value);
 		}
 		_checkUniqueConstraints(i, true, updatedFields);
-		_logger.info("inserting instance [{}]", i);
+		getLogger().log(info("inserting instance [{}]", i));
 		_put(i);
-		_logger.info("persisted with id {}", i.getId());
+		getLogger().log(info("persisted with id {}", i.getId()));
 	}
 
 	public boolean update(I i) {
@@ -205,7 +205,7 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 		_checkUniqueConstraints(i, false, updatedFields);
 		i.flush(timeUpdated, new Date());
-		_logger.info("updating instance [{}]", i);
+		getLogger().log(info("updating instance [{}]", i));
 		_put(i);
 		return true;
 	}
@@ -231,10 +231,10 @@ public abstract class Entity<I extends Instance<?>> {
 		Checker.checkNull(i);
 		_checkLoaded();
 		_checkPersisted(i);
-		_logger.info("deleting {} with id {}", getInstanceName(), i.getId());
+		getLogger().log(info("deleting {} with id {}", getInstanceName(), i.getId()));
 		// Process dependencies:
 		for(Dependency d : _dependencies) {
-			_logger.info("found dependency in {}", d.entity.getName());
+			getLogger().log(info("found dependency in {}", d.entity.getName()));
 			Iterator<Instance<?>> it = d.findInstancesRelatedTo(i).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
@@ -255,14 +255,14 @@ public abstract class Entity<I extends Instance<?>> {
 			}
 		}
 		// Delete the instance:
-		_logger.info("running query: DELETE FROM {} WHERE id = {}", getName(), i.getId());
+		getLogger().log(info("running query: DELETE FROM {} WHERE id = {}", getName(), i.getId()));
 		_ds.delete(i.getGoogleEntity().getKey());
 	}
 
 	// This method is protected to avoid making it available to subclasses by default.
 	// Entity classes need to explicitly expose this method to allow its use.
 	protected void deleteAll() {
-		_logger.info("running query: DELETE FROM {}", getName());
+		getLogger().log(info("running query: DELETE FROM {}", getName()));
 		_ds.delete(_getKeysFrom(find().iterate()));
 	}
 
@@ -270,9 +270,9 @@ public abstract class Entity<I extends Instance<?>> {
 		Checker.checkNull(id);
 		_checkLoaded();
 		try {
-			_logger.info("running query: SELECT * FROM {} WHERE id = {}", getName(), id);
+			getLogger().log(info("running query: SELECT * FROM {} WHERE id = {}", getName(), id));
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
-			_logger.info(e == null ? "{} not found" : "{} found", getInstanceName());
+			getLogger().log(info(e == null ? "{} not found" : "{} found", getInstanceName()));
 			return _createSafely(e);
 		}
 		catch(EntityNotFoundException enfe) {
@@ -304,11 +304,11 @@ public abstract class Entity<I extends Instance<?>> {
 				if(p != idArg) {
 					Object value = i.getValue(p.getField());
 					if(value == null && p.getValue() != null) {
-						_logger.info("field {} does not match", p.getField().getFullName());
+						getLogger().log(info("field {} does not match", p.getField().getFullName()));
 						return null;
 					}
 					if(!value.equals(p.getValue())) {
-						_logger.info("field {} does not match", p.getField().getFullName());
+						getLogger().log(info("field {} does not match", p.getField().getFullName()));
 						return null;
 					}
 				}
@@ -319,9 +319,9 @@ public abstract class Entity<I extends Instance<?>> {
 			// Retrieve entity based on filters:
 			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
 			Query q = new Query(getName()).setFilter(f);
-			_logger.info("running query: {}", q);
+			getLogger().log(info("running query: {}", q));
 			com.google.appengine.api.datastore.Entity e = _ds.prepare(q).asSingleEntity();
-			_logger.info(e == null ? "{} not found" : "{} found", getInstanceName());
+			getLogger().log(info(e == null ? "{} not found" : "{} found", getInstanceName()));
 			return _createSafely(e);
 		}
 	}
@@ -329,7 +329,7 @@ public abstract class Entity<I extends Instance<?>> {
 	public pro.outcome.data.Query<I> find(QueryArg ... params) {
 		_checkLoaded();
 		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
-		_logger.info("running query: {}", pq);
+		getLogger().log(info("running query: {}", pq));
 		return new pro.outcome.data.Query<I>(pq, _instanceType);
 	}
 	
@@ -411,7 +411,7 @@ public abstract class Entity<I extends Instance<?>> {
 			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
 			q.setFilter(f);
 		}
-		_logger.info("running query: {}", q);
+		getLogger().log(info("running query: {}", q));
 		return q;
 	}
 	
