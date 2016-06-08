@@ -124,6 +124,7 @@ public class ResponseImpl extends HttpServletResponseWrapper implements Response
 		}
 		PrintWriter out = getWriter();
 		jResponse.write(out);
+		out.println();
 		out.close();
 	}
 	

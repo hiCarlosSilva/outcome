@@ -160,6 +160,7 @@ public abstract class Servlet extends HttpServlet {
 	private void _process(HttpMethod method, HttpServletRequest httpReq, HttpServletResponse httpResp) throws IOException {
 		Request req = new RequestImpl(httpReq);
 		Response resp = new ResponseImpl(httpResp, getExpectedContentType());
+		getLogger().info(x("servlet '{}' received a {} request", getClass().getSimpleName(), method));
 		try {
 			req.setCharacterEncoding(CHARSET);
 			resp.setCharacterEncoding(CHARSET);
@@ -192,6 +193,7 @@ public abstract class Servlet extends HttpServlet {
 		catch(Exception e) {
 			ErrorHandler.handleException(e, req, resp);
 		}
+		getLogger().info(x("servlet '{}' completed a {} request", getClass().getSimpleName(), method));
 	}
 
 	private static final long serialVersionUID = 1L;
