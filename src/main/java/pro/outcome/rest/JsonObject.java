@@ -6,7 +6,6 @@ package pro.outcome.rest;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
-import java.util.AbstractList;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -28,22 +27,23 @@ public class JsonObject {
 	}
 	
 	// INSTANCE:
-	private final JSONObject _json;
+	private final JSONObject _source;
 	
-	private JsonObject(JSONObject json) {
-		_json = json;
+	// For Self and JsonList:
+	JsonObject(JSONObject json) {
+		_source = json;
 	}
 	
 	public JsonObject() {
-		_json = new JSONObject();
+		_source = new JSONObject();
 	}
 	
 	public int hashCode() {
-		return _json.hashCode();
+		return _source.hashCode();
 	}
 	
 	public String toString() {
-		return _json.toString();
+		return _source.toString();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -51,16 +51,22 @@ public class JsonObject {
 		Checker.checkEmpty(name);
 		if(value != null) {
 			if(value.getClass() == JsonObject.class) {
-				value = ((JsonObject)value)._json;
+				value = ((JsonObject)value)._source;
+			}
+			else if(value.getClass() == JsonList.class) {
+				value = ((JsonList<?>)value).getSource();
+			}
+			else if(value.getClass() != String.class && !(value instanceof Number) && value.getClass() != Boolean.class) {
+				value = value.toString();
 			}
 		}
-		_json.put(name, value);
+		_source.put(name, value);
 		return this;
 	}
 	
 	public Object remove(String name) {
 		Checker.checkEmpty(name);
-		Object value = _json.remove(name);
+		Object value = _source.remove(name);
 		if(value != null) {
 			if(value instanceof JSONObject) {
 				value = new JsonObject((JSONObject)value);
@@ -73,88 +79,51 @@ public class JsonObject {
 	public JsonObject addChild(String name) {
 		Checker.checkEmpty(name);
 		JsonObject child = new JsonObject();
-		_json.put(name, child._json);
+		_source.put(name, child._source);
 		return child;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public <E> List<E> addChildListOf(String name, Class<E> type) {
+		Checker.checkEmpty(name);
+		Checker.checkNull(type);
+		JSONArray array = new JSONArray();
+		_source.put(name, array);		
+		return new JsonList<E>(array, type);
+	}
+		
 	public String getString(String name) {
 		Checker.checkEmpty(name);
-		return (String)_json.get(name);
+		return (String)_source.get(name);
 	}
 	
 	public JsonObject getJsonObject(String name) {
 		Checker.checkEmpty(name);
-		JSONObject json = (JSONObject)_json.get(name);
+		JSONObject json = (JSONObject)_source.get(name);
 		return new JsonObject(json);
 	}
 	
 	public <E> List<E> getListOf(String name, Class<E> type) {
 		Checker.checkEmpty(name);
 		Checker.checkNull(type);
-		final JSONArray array = (JSONArray)_json.get(name);
-		final boolean jsonObject = type == JsonObject.class;
+		final JSONArray array = (JSONArray)_source.get(name);
 		if(array == null) {
 			return null;
 		}
-		return new AbstractList<E>() {
-			
-			public int size() {
-				return array.size();
-			}
-			
-			@SuppressWarnings("unchecked")
-			public E get(int index) {
-				if(jsonObject) {
-					JsonObject json = new JsonObject((JSONObject)array.get(index));
-					return (E)json;
-				}
-				else {
-					return (E)array.get(index);
-				}
-			}
-			
-			@SuppressWarnings("unchecked")
-			public E set(int index, E element) {
-				if(jsonObject) {
-					E json = get(index);
-					array.set(index, ((JsonObject)element)._json);
-					return json;
-				}
-				else {
-					return (E)array.set(index, element);
-				}
-			}
-			
-			@SuppressWarnings("unchecked")
-			public void add(int index, E element) {
-				if(jsonObject) {
-					array.add(((JsonObject)element)._json);
-				}
-				else {
-					array.add(index, element);
-				}
-			}
-			
-			@SuppressWarnings("unchecked")
-			public E remove(int index) {
-				if(jsonObject) {
-					E json = get(index);
-					array.remove(index);
-					return json;
-				}
-				else {
-					return (E)array.remove(index);
-				}
-			}
-		};
+		return new JsonList<E>(array, type);
 	}
 
 	public void write(Writer out, boolean prettyPrint) throws IOException {
 		Checker.checkNull(out);
-		_json.writeJSONString(out);
+		_source.writeJSONString(out);
 	}
 
 	public void write(Writer out) throws IOException {
 		write(out, false);
+	}
+	
+	// For JsonList:
+	JSONObject getSource() {
+		return _source;
 	}
 }
