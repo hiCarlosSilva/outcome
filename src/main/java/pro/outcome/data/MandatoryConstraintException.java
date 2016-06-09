@@ -7,8 +7,8 @@ package pro.outcome.data;
 
 public class MandatoryConstraintException extends ConstraintException {
 
-	MandatoryConstraintException(Field<?> field) {
-		super("mandatory constraint: field '"+field.getName()+"' cannot be set to NULL", field, null);
+	MandatoryConstraintException(Property<?> prop) {
+		super("mandatory constraint: property '"+prop.getName()+"' cannot be set to NULL", prop, null);
 	}
 
 	private static final long serialVersionUID = 1L;

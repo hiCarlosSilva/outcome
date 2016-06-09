@@ -7,8 +7,8 @@ package pro.outcome.data;
 
 public class AutoGenConstraintException extends ConstraintException {
 
-	AutoGenConstraintException(Field<?> field, Object value) {
-		super("auto-generated constraint: field '"+field.getName()+"' cannot be set", field, value);
+	AutoGenConstraintException(Property<?> prop, Object value) {
+		super("auto-generated constraint: property '"+prop.getName()+"' cannot be set", prop, value);
 	}
 
 	private static final long serialVersionUID = 1L;

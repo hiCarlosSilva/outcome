@@ -8,10 +8,10 @@ package pro.outcome.data;
 class Dependency {
 
 	public final Entity<Instance<?>> entity;
-	public final Field<?> foreignKey;
-	public final Field.OnDelete onDelete;
+	public final Property<?> foreignKey;
+	public final Property.OnDelete onDelete;
 
-	public Dependency(Entity<Instance<?>> entity, Field<?> foreignKey, Field.OnDelete onDelete) {
+	public Dependency(Entity<Instance<?>> entity, Property<?> foreignKey, Property.OnDelete onDelete) {
 		this.entity = entity;
 		this.foreignKey = foreignKey;
 		this.onDelete = onDelete;

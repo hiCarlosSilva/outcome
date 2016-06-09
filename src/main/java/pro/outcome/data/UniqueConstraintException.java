@@ -8,12 +8,12 @@ import static pro.outcome.util.Shortcuts.*;
 
 public class UniqueConstraintException extends ConstraintException {
 
-	UniqueConstraintException(Field<?> field, Object value) {
-		super(x("unique constraint: entity with '{}' = '{}' already exists", field.getName(), value), field, value);
+	UniqueConstraintException(Property<?> prop, Object value) {
+		super(x("unique constraint: entity with '{}' = '{}' already exists", prop.getName(), value), prop, value);
 	}
 
 	UniqueConstraintException(UniqueConstraint uc) {
-		super(x("unique constraint: entity with fields {} already exists", uc), null, null);
+		super(x("unique constraint: entity with properties {} already exists", uc), null, null);
 	}
 
 	private static final long serialVersionUID = 1L;

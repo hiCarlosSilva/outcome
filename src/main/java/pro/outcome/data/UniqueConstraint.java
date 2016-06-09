@@ -4,21 +4,21 @@ import pro.outcome.util.Arrays;
 
 class UniqueConstraint {
 
-	private final Field<?>[] _fields;
+	private final Property<?>[] _props;
 
-	public UniqueConstraint(Field<?> ... fields) {
+	public UniqueConstraint(Property<?> ... props) {
 		// Precondition checks are done on Entity.
-		_fields = fields;
+		_props = props;
 	}
 	
 	public String toString() {
-		return Arrays.toString(_fields);
+		return Arrays.toString(_props);
 	}
 	
 	public int hashCode() {
 		int hash = 7;
-		for(int i=0; i<_fields.length; i++) {
-			hash = 31 * hash + _fields[i].hashCode();
+		for(int i=0; i<_props.length; i++) {
+			hash = 31 * hash + _props[i].hashCode();
 		}
 		return hash;
 	}
@@ -31,19 +31,19 @@ class UniqueConstraint {
 			return false;
 		}
 		if(o instanceof UniqueConstraint) {
-			return Arrays.equalsIgnoreOrder(_fields, ((UniqueConstraint) o)._fields);
+			return Arrays.equalsIgnoreOrder(_props, ((UniqueConstraint) o)._props);
 		}
 		return false;
 	}
 	
-	public Field<?>[] getFields() {
-		return _fields;
+	public Property<?>[] getProperties() {
+		return _props;
 	}
 
 	public QueryArg[] toArgs(Instance<?> i) {
-		QueryArg[] args = new QueryArg[_fields.length];
-		for(int j=0; j<_fields.length; j++) {
-			args[j] = new QueryArg(_fields[j], i.getValue(_fields[j]));
+		QueryArg[] args = new QueryArg[_props.length];
+		for(int j=0; j<_props.length; j++) {
+			args[j] = new QueryArg(_props[j], i.getValue(_props[j]));
 		}
 		return args;
 	}

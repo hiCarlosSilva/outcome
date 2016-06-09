@@ -7,16 +7,17 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import pro.outcome.data.Field.Constraint;
+import pro.outcome.data.Property.Constraint;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IllegalUsageException;
 
 
+// TODO consider moving this class and allowed-origins code outside of base REST package.
 public class Config extends Entity<ConfigValue> {
 
 	// TYPE:
-	public final Field<String> name;
-	public final Field<Object> value;
+	public final Property<String> name;
+	public final Property<Object> value;
 
 	public interface Properties {
 		public static final String BASE_URL = "base-url";
@@ -28,13 +29,13 @@ public class Config extends Entity<ConfigValue> {
 	private final Map<String,ConfigValue> _cache;
 	
 	public Config() {
-		name = addField(String.class, "name", true, Constraint.MANDATORY, Constraint.UNIQUE, Constraint.READ_ONLY);
-		value = addField(Object.class, "value", false, (Object)null, Constraint.MANDATORY);
+		name = addProperty(String.class, "name", true, Constraint.MANDATORY, Constraint.UNIQUE, Constraint.READ_ONLY);
+		value = addProperty(Object.class, "value", false, (Object)null, Constraint.MANDATORY);
 		_cache = new HashMap<>();
 	}
 	
-	public Field<?>[] getNaturalKeyFields() {
-		return new Field<?>[] { name };
+	public Property<?>[] getNaturalKeyProperties() {
+		return new Property<?>[] { name };
 	}
 
 	public Object getValue(String name, boolean failIfNull) {
@@ -49,7 +50,7 @@ public class Config extends Entity<ConfigValue> {
 		}
 		if(value == null) {
 			if(failIfNull) {
-				throw new IllegalUsageException(name+" property has not been set");
+				throw new IllegalUsageException(name+" configuration property has not been set");
 			}
 			return null;
 		}

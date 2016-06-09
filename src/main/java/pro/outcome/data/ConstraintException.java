@@ -7,8 +7,8 @@ package pro.outcome.data;
 
 public abstract class ConstraintException extends DataValidationException {
 
-	protected ConstraintException(String message, Field<?> field, Object value) {
-		super(message, field, value);
+	protected ConstraintException(String message, Property<?> prop, Object value) {
+		super(message, prop, value);
 	}
 	
 	private static final long serialVersionUID = 1L;

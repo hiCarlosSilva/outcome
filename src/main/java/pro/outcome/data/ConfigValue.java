@@ -15,7 +15,7 @@ public class ConfigValue extends Instance<Config> {
 		this.setValue(getEntity().value, value);
 	}
 	
-	// Field getters / setters:
+	// Property getters / setters:
 	public String getName() { return getValue(getEntity().name); }
 	public Object getValue() { return getValue(getEntity().value); }
 	public ConfigValue setValue(Object value) { setValue(getEntity().value, value); return this; }	

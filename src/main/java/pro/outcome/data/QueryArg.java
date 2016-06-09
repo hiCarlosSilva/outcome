@@ -15,27 +15,27 @@ public class QueryArg {
 	public static enum Operator { EQUAL, NOT_EQUAL };
 	
 	// INSTANCE:
-	private final Field<?> _field;
+	private final Property<?> _property;
 	private final Object _value;
 	private final Operator _op;
 	
-	// For Field
-	<T> QueryArg(Field<T> field, Object value, Operator op) {
-		if(!field.isIndexed()) {
-			throw new IllegalArgumentException(x("cannot query field {} because it is not indexed", field.getFullName()));
+	// For Property:
+	<T> QueryArg(Property<T> property, Object value, Operator op) {
+		if(!property.isIndexed()) {
+			throw new IllegalArgumentException(x("cannot query property {} because it is not indexed", property.getFullName()));
 		}
-		_field = field;
+		_property = property;
 		_value = value;
 		_op = op;
 	}
 	
-	// For Field
-	<T> QueryArg(Field<T> field, Object value) {
-		this(field, value, Operator.EQUAL);
+	// For Property:
+	<T> QueryArg(Property<T> property, Object value) {
+		this(property, value, Operator.EQUAL);
 	}
 
-	public Field<?> getField() {
-		return _field;
+	public Property<?> getProperty() {
+		return _property;
 	}
 	
 	public Object getValue() {
@@ -45,7 +45,7 @@ public class QueryArg {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		sb.append(_field);
+		sb.append(_property);
 		sb.append(" ");
 		sb.append(_op);
 		sb.append(" ");
@@ -56,7 +56,7 @@ public class QueryArg {
 
 	// For Facade:
 	FilterPredicate toFilter() {
-		return new FilterPredicate(_field.getName(), _getOperator(), _field.toPrimitive(_value));
+		return new FilterPredicate(_property.getName(), _getOperator(), _property.toPrimitive(_value));
 	}
 	
 	private FilterOperator _getOperator() {

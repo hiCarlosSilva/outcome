@@ -7,17 +7,17 @@ package pro.outcome.data;
 
 public abstract class DataValidationException extends RuntimeException {
 
-	private final Field<?> _field;
+	private final Property<?> _property;
 	private final Object _value;
 	
-	protected DataValidationException(String message, Field<?> field, Object value) {
+	protected DataValidationException(String message, Property<?> prop, Object value) {
 		super(message);
-		_field = field;
+		_property = prop;
 		_value = value;
 	}
 	
-	public Field<?> getField() {
-		return _field;
+	public Property<?> getProperty() {
+		return _property;
 	}
 	
 	public Object getValue() {
