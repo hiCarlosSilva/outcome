@@ -23,6 +23,8 @@ public class Config extends Entity<ConfigValue> {
 		public static final String BASE_URL = "base-url";
 		public static final String ENV = "env";
 		public static final String ALLOWED_ORIGINS = "allowed-origins";
+		// TODO move this prop into the WEB project
+		public static final String API_SERVER = "api-server";
 	}
 	
 	// INSTANCE:
