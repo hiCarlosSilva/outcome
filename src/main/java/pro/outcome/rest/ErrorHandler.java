@@ -36,7 +36,7 @@ class ErrorHandler {
 				String message = StatusCodes.UNEXPECTED.expand(e.getMessage());
 				_logger.log(severe(e, message));
 				// Send response:
-				resp.sendError(StatusCodes.UNEXPECTED, null, e.getMessage());
+				resp.sendError(StatusCodes.UNEXPECTED, null, e.toString());
 			}
 		}
 		catch(Throwable t) {
