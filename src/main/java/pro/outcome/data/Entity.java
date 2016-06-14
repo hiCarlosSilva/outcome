@@ -102,8 +102,8 @@ public abstract class Entity<I extends Instance<?>> {
 		return _addProperty(c, name, indexed, def, null, constraints);
 	}
 
-	protected <T> Property<T> addProperty(Class<T> c, String name, boolean indexed, Property.OnDelete onDelete, Constraint ...constraints) {
-		return _addProperty(c, name, indexed, null, onDelete, constraints);
+	protected <T> Property<T> addProperty(Class<T> c, String name, Property.OnDelete onDelete, Constraint ...constraints) {
+		return _addProperty(c, name, true, null, onDelete, constraints);
 	}
 
 	protected void addUniqueConstraint(Property<?> ... props) {
@@ -353,6 +353,9 @@ public abstract class Entity<I extends Instance<?>> {
 		if(prop.isForeignKey()) {
 			if(onDelete == null) {
 				throw new IllegalArgumentException("foreign keys require an on-delete constraint");
+			}
+			if(indexed == false) {
+				throw new IllegalArgumentException("foreign keys need to be indexed");
 			}
 			// Get the foreign entity:
 			Entity<?> foreignEntity = Entities.getEntityForInstance(c);
