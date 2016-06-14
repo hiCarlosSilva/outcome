@@ -3,8 +3,6 @@
 // contained in this source code file without our prior consent is forbidden. If you have an interest 
 // in using any part of this source code in your software, please contact us on listening@connector.im.
 package pro.outcome.data;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import pro.outcome.data.Property.Constraint;
@@ -12,20 +10,11 @@ import pro.outcome.util.Checker;
 import pro.outcome.util.IllegalUsageException;
 
 
-// TODO consider moving this class and allowed-origins code outside of base REST package.
 public class Config extends Entity<ConfigValue> {
 
 	// TYPE:
 	public final Property<String> name;
 	public final Property<Object> value;
-
-	public interface Properties {
-		public static final String BASE_URL = "base-url";
-		public static final String ENV = "env";
-		public static final String ALLOWED_ORIGINS = "allowed-origins";
-		// TODO move this prop into the WEB project
-		public static final String API_SERVER = "api-server";
-	}
 	
 	// INSTANCE:
 	private final Map<String,ConfigValue> _cache;
@@ -77,27 +66,9 @@ public class Config extends Entity<ConfigValue> {
 		_cache.clear();
 		return super.save(value);
 	}
-
-	public String getBaseUrl() {
-		return (String)getValue(Properties.BASE_URL, true);
-	}
-
-	public String getEnvironment() {
-		return (String)getValue(Properties.ENV, true);
-	}
 	
-	// TODO change this method
-	public List<String> getAllowedOrigins() {
-		Object tmp = getValue(Properties.ALLOWED_ORIGINS);
-		if(tmp instanceof String) {
-			List<String> list = new ArrayList<>();
-			list.add((String)tmp);
-			return list;
-		}
-		else {
-			@SuppressWarnings("unchecked")
-			List<String> ao = (List<String>)getValue(Properties.ALLOWED_ORIGINS);
-			return ao == null ? new ArrayList<String>(0) : ao;
-		}		
+	public void delete(ConfigValue value) {
+		_cache.clear();
+		super.delete(value);
 	}
 }

@@ -16,7 +16,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import pro.outcome.rest.Request.HttpMethod;
-import pro.outcome.data.Entities;
+import pro.outcome.data.ConfigWrapper;
 import pro.outcome.util.Checker;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.Reflection;
@@ -125,7 +125,7 @@ public abstract class Servlet extends HttpServlet {
 					_cfg = new Configuration();
 					_cfg.setServletContextForTemplateLoading(getServletContext(), "/WEB-INF/templates");
 					_cfg.setDefaultEncoding(CHARSET);
-					if(Entities.config.getEnvironment().equals("live")) {
+					if(ConfigWrapper.getEnvironment().equals("live")) {
 						_cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 					}
 					else {
@@ -144,7 +144,7 @@ public abstract class Servlet extends HttpServlet {
 			getLogger().log(info("received null Origin header"));
 			return;
 		}
-		List<String> allowedOrigins = Entities.config.getAllowedOrigins();
+		List<String> allowedOrigins = ConfigWrapper.getAllowedOrigins();
 		if(allowedOrigins.contains(origin)) {
 			// Enable Cross-Origin Resource Sharing (see link below for details)
 			// http://www.html5rocks.com/en/tutorials/cors/
