@@ -80,4 +80,25 @@ public class Tools {
 		}
 		out.flush();
 	}
+	
+	public static void print(Collection<?> col) {
+		if(col.isEmpty()) {
+			System.out.println("Collection is empty");
+			return;
+		}
+		int i=0;
+		for(Object o : col) {
+			System.out.println(x("[{}]: {}", ++i, o));
+		}
+	}
+	
+	public static void print(Map<?,?> map) {
+		if(map.isEmpty()) {
+			System.out.println("Map is empty");
+			return;
+		}
+		for(Map.Entry<?,?> entry : map.entrySet()) {
+			System.out.println(x("[{}]: {}", entry.getKey(), entry.getValue()));
+		}
+	}
 }

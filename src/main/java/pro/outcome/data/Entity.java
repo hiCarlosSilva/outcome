@@ -29,6 +29,7 @@ import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.IllegalUsageException;
 import pro.outcome.data.Property.Constraint;
+import pro.outcome.data.Property.OnDelete;
 import static pro.outcome.util.Shortcuts.*;
 
 
@@ -64,6 +65,8 @@ public abstract class Entity<I extends Instance<?>> {
 		_ds = DatastoreServiceFactory.getDatastoreService();
 		_logger = Logger.getLogger(getClass().getName());
 		_loaded = false;
+		// Register this object:
+		Entities.register(this);
 	}
 
 	protected Logger getLogger() {
@@ -131,7 +134,7 @@ public abstract class Entity<I extends Instance<?>> {
 	// Data management methods:
 	public void insert(I i) {
 		Checker.checkNull(i);
-		_checkLoaded();
+		_loadOnFirstUse();
 		if(i.isPersisted()) {
 			throw new IllegalArgumentException("entity has already been persisted");
 		}
@@ -185,7 +188,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public boolean update(I i) {
 		Checker.checkNull(i);
-		_checkLoaded();
+		_loadOnFirstUse();
 		_checkPersisted(i);
 		if(!i.hasUpdates()) {
 			return false;
@@ -212,7 +215,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public boolean save(I i) {
 		Checker.checkNull(i);
-		_checkLoaded();
+		_loadOnFirstUse();
 		I existing = findSingle(i.getNaturalKeyAsArg());
 		if(existing == null) {
 			insert(i);
@@ -229,7 +232,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public void delete(I i) {
 		Checker.checkNull(i);
-		_checkLoaded();
+		_loadOnFirstUse();
 		_checkPersisted(i);
 		getLogger().log(info("deleting {} with id {}", getInstanceName(), i.getId()));
 		// Process dependencies:
@@ -238,19 +241,20 @@ public abstract class Entity<I extends Instance<?>> {
 			Iterator<Instance<?>> it = d.findInstancesRelatedTo(i).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
-				if(d.onDelete == Property.OnDelete.CASCADE) {
+				OnDelete onDeleteAction = d.foreignKey.getOnDeleteAction();
+				if(onDeleteAction == Property.OnDelete.CASCADE) {
 					d.entity.delete(related);
 				}
-				else if(d.onDelete == Property.OnDelete.RESTRICT) {
+				else if(onDeleteAction == Property.OnDelete.RESTRICT) {
 					// TODO onDeleteException??
 					throw new RuntimeException();
 				}
-				else if(d.onDelete == Property.OnDelete.SET_NULL) {
+				else if(onDeleteAction == Property.OnDelete.SET_NULL) {
 					related.setValue(d.foreignKey, null);
 					d.entity.update(related);
 				}
 				else {
-					throw new IntegrityException(d.onDelete);
+					throw new IntegrityException(onDeleteAction);
 				}
 			}
 		}
@@ -260,7 +264,7 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 
 	public void deleteWhere(QueryArg ... params) {
-		_checkLoaded();
+		_loadOnFirstUse();
 		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
 		getLogger().log(info("running query: DELETE FRM {} WHERE {}", getName(), pq));
 		_ds.delete(_getKeysFrom(new pro.outcome.data.Query<I>(pq, _instanceType).iterate()));
@@ -272,7 +276,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public I find(Long id) {
 		Checker.checkNull(id);
-		_checkLoaded();
+		_loadOnFirstUse();
 		try {
 			getLogger().log(info("running query: SELECT * FROM {} WHERE id = {}", getName(), id));
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
@@ -286,7 +290,7 @@ public abstract class Entity<I extends Instance<?>> {
 	
 	public I findSingle(QueryArg ... params) {
 		Checker.checkEmpty(params);
-		_checkLoaded();
+		_loadOnFirstUse();
 		List<Filter> filters = new ArrayList<>(params.length);
 		QueryArg idArg = null;
 		for(QueryArg p : params) {
@@ -331,7 +335,7 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 	
 	public pro.outcome.data.Query<I> findWhere(QueryArg ... params) {
-		_checkLoaded();
+		_loadOnFirstUse();
 		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
 		getLogger().log(info("running query: {}", pq));
 		return new pro.outcome.data.Query<I>(pq, _instanceType);
@@ -349,7 +353,6 @@ public abstract class Entity<I extends Instance<?>> {
 		_loaded = true;
 	}
 
-	@SuppressWarnings("unchecked")
 	private <T> Property<T> _addProperty(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Property.OnDelete onDelete, Constraint ... constraints) {
 		Checker.checkNull(c);
 		Checker.checkEmpty(name);
@@ -357,25 +360,7 @@ public abstract class Entity<I extends Instance<?>> {
 		if(_properties.containsKey(name)) {
 			throw new IllegalArgumentException("property named '"+name+"' already exists");
 		}
-		Property<T> prop = new Property<T>(this, c, name, indexed, def, constraints);
-		if(prop.isForeignKey()) {
-			if(onDelete == null) {
-				throw new IllegalArgumentException("foreign keys require an on-delete constraint");
-			}
-			if(indexed == false) {
-				throw new IllegalArgumentException("foreign keys need to be indexed");
-			}
-			// Get the foreign entity:
-			Entity<?> foreignEntity = Entities.getEntityForInstance(c);
-			if(foreignEntity == null) {
-				throw new IntegrityException();
-			}
-			// Record a delete dependency:
-			foreignEntity._dependencies.add(new Dependency((Entity<Instance<?>>)this, prop, onDelete));
-		}
-		else {
-			// TODO check allowed data types
-		}
+		Property<T> prop = new Property<T>(this, c, name, indexed, def, onDelete, constraints);
 		_properties.put(name, prop);
 		return prop;
 	}
@@ -399,9 +384,21 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 	}
 
-	private void _checkLoaded() {
+	@SuppressWarnings("unchecked")
+	private void _loadOnFirstUse() {
 		if(!_loaded) {
-			throw new IllegalStateException(getName()+" has not been loaded (see Entities.load)");
+			// Load all related entities and dependencies:
+			for(Property<?> prop : _properties.values()) {
+				if(prop.isForeignKey()) {
+					// Get the foreign entity:
+					Entity<?> foreignEntity = Entities.getEntityForInstance(prop.getType());
+					// Store related entity:
+					prop.setRelatedEntity(foreignEntity);
+					// Record a delete dependency:
+					foreignEntity._dependencies.add(new Dependency((Entity<Instance<?>>)this, prop));
+				}
+			}
+			_loaded = true;
 		}
 	}
 

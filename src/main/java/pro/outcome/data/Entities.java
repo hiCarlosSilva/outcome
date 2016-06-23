@@ -8,34 +8,29 @@ import java.util.HashMap;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.IntegrityException;
-import pro.outcome.util.Reflection;
+import static pro.outcome.util.Shortcuts.*;
 
 
 public abstract class Entities {
 
 	// TYPE:
 	private static final Map<String,Entity<?>> _byName = new HashMap<>();
-	private static final Map<Class<?>,Entity<?>> _byInstance = new HashMap<>();
+	private static final Map<Class<?>,Entity<?>> _byInstance = new HashMap<>();	
 	// Entities for this package:
-	public static final Config config = load(Config.class);
+	public static final Config config = new Config();
 
-	public static <E extends Entity<?>> E load(Class<E> c) {
+	// For Entity:
+	static <E extends Entity<?>> void register(E e) {
 		@SuppressWarnings("unchecked")
-		E e = (E)_byName.get(c.getSimpleName());
-		if(e != null) {
-			return e;
+		E tmp = (E)_byName.get(e.getClass().getSimpleName());
+		if(tmp != null) {
+			throw new IllegalArgumentException(x("entity '{}' has already been registered", e.getClass().getSimpleName()));
 		}
-		// Create:
-		e = Reflection.createObject(c);
-		// Register:
 		_byName.put(e.getName(), e);
 		if(_byInstance.containsKey(e.getInstanceClass())) {
 			throw new IntegrityException();
 		}
 		_byInstance.put(e.getInstanceClass(), e);
-		// Load:
-		e.load();
-		return e;
 	}
 	
 	public static Entity<?> getEntity(String name) {

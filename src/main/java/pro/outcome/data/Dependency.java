@@ -9,12 +9,10 @@ class Dependency {
 
 	public final Entity<Instance<?>> entity;
 	public final Property<?> foreignKey;
-	public final Property.OnDelete onDelete;
 
-	public Dependency(Entity<Instance<?>> entity, Property<?> foreignKey, Property.OnDelete onDelete) {
+	public Dependency(Entity<Instance<?>> entity, Property<?> foreignKey) {
 		this.entity = entity;
 		this.foreignKey = foreignKey;
-		this.onDelete = onDelete;
 	}
 	
 	public String toString() {
