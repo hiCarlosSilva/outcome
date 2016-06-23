@@ -259,11 +259,15 @@ public abstract class Entity<I extends Instance<?>> {
 		_ds.delete(i.getGoogleEntity().getKey());
 	}
 
-	// This method is protected to avoid making it available to subclasses by default.
-	// Entity classes need to explicitly expose this method to allow its use.
-	protected void deleteAll() {
-		getLogger().log(info("running query: DELETE FROM {}", getName()));
-		_ds.delete(_getKeysFrom(find().iterate()));
+	public void deleteWhere(QueryArg ... params) {
+		_checkLoaded();
+		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
+		getLogger().log(info("running query: DELETE FRM {} WHERE {}", getName(), pq));
+		_ds.delete(_getKeysFrom(new pro.outcome.data.Query<I>(pq, _instanceType).iterate()));
+	}
+	
+	public void deleteAll() {
+		deleteWhere();
 	}
 
 	public I find(Long id) {
@@ -326,11 +330,15 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 	}
 	
-	public pro.outcome.data.Query<I> find(QueryArg ... params) {
+	public pro.outcome.data.Query<I> findWhere(QueryArg ... params) {
 		_checkLoaded();
 		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
 		getLogger().log(info("running query: {}", pq));
 		return new pro.outcome.data.Query<I>(pq, _instanceType);
+	}
+	
+	public pro.outcome.data.Query<I> findAll() {
+		return findWhere();
 	}
 	
 	// For Entities:

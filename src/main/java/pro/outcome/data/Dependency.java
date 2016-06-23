@@ -22,6 +22,6 @@ class Dependency {
 	}
 	
 	public Query<Instance<?>> findInstancesRelatedTo(Instance<?> i) {
-		return entity.find(new QueryArg(foreignKey, i));
+		return entity.findWhere(new QueryArg(foreignKey, i));
 	}
 }
