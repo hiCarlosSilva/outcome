@@ -23,7 +23,7 @@ public class StatusCodes {
 	}
 
 	public static final StatusCode OK = add(0, "OK", HttpServletResponse.SC_OK);
-	public static final StatusCode NOT_FOUND = add(1, "'{}': endpoint not found", HttpServletResponse.SC_NOT_FOUND);
+	public static final StatusCode ENDPOINT_NOT_FOUND = add(1, "'{}': endpoint not found", HttpServletResponse.SC_NOT_FOUND);
 	public static final StatusCode VERSION_DEPRECATED = add(2, "version {} has been deprecated", HttpServletResponse.SC_GONE);
 	public static final StatusCode METHOD_NOT_ALLOWED = add(3, "{}: method not allowed", HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 	public static final StatusCode PARAM_NOT_FOUND = add(4, "mandatory parameter '{}' not found", HttpServletResponse.SC_BAD_REQUEST);

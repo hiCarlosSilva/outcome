@@ -18,7 +18,7 @@ public class NotFoundServlet extends Servlet {
 
 	public void doGet(Request req, Response resp) throws IOException {
 		String uri = (String)req.getAttribute("javax.servlet.error.request_uri");
-		resp.sendError(StatusCodes.NOT_FOUND, null, uri);
+		resp.sendError(StatusCodes.ENDPOINT_NOT_FOUND, null, uri);
 	}
 
 	private static final long serialVersionUID = 1L;
