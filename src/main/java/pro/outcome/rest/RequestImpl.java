@@ -105,10 +105,6 @@ public class RequestImpl extends HttpServletRequestWrapper implements Request {
 		return getCompleteRequestURL(false);
 	}
 
-	public String[] breakRequestPath() {
-		return getRequestURI().substring(1).split("\\/");
-	}
-
 	public String getParameter(String name, boolean required) {
 		Checker.checkEmpty(name);
 		String param = super.getParameter(name);

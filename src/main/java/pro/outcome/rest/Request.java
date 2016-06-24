@@ -36,5 +36,4 @@ public interface Request extends HttpServletRequest {
 	public String getQueryString(boolean decode);
 	public String getCompleteRequestURL();
 	public String getCompleteRequestURL(boolean decode);
-	public String[] breakRequestPath();
 }
