@@ -19,7 +19,7 @@ class Dependency {
 		return "Dependency: "+foreignKey.getFullName();
 	}
 	
-	public Query<Instance<?>> findInstancesRelatedTo(Instance<?> i) {
-		return entity.findWhere(new QueryArg(foreignKey, i));
+	public QueryResult<Instance<?>> findInstancesRelatedTo(Instance<?> i) {
+		return entity.findWhere(new QueryArg(foreignKey, i, QueryArg.Operator.EQUAL));
 	}
 }

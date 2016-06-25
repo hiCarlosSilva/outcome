@@ -366,8 +366,9 @@ public class Strings {
 			if(p == null) {
 				p = _NULL_LC;
 			}
+			String converted = p.getClass().isArray() ? Arrays.toString((Object[])p) : p.toString();
 			// TODO check why we need to escape this
-			s = s.replaceFirst(_EXPANSION_REGEX, escape(p.toString(), "$"));
+			s = s.replaceFirst(_EXPANSION_REGEX, escape(converted, "$"));
 		}
 		return s;
 	}

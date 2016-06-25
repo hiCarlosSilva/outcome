@@ -19,11 +19,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.CompositeFilter;
-import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
-import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.PreparedQuery;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
 import pro.outcome.util.IntegrityException;
@@ -247,7 +242,7 @@ public abstract class Entity<I extends Instance<?>> {
 				}
 				else if(onDeleteAction == Property.OnDelete.RESTRICT) {
 					// TODO onDeleteException??
-					throw new RuntimeException();
+					throw new RuntimeException(x("{} cannot be deleted because there is a related {}", related.getEntity().getInstanceName(), getInstanceName()));
 				}
 				else if(onDeleteAction == Property.OnDelete.SET_NULL) {
 					related.setValue(d.foreignKey, null);
@@ -265,9 +260,9 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public void deleteWhere(QueryArg ... params) {
 		_loadOnFirstUse();
-		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
-		getLogger().log(info("running query: DELETE FRM {} WHERE {}", getName(), pq));
-		_ds.delete(_getKeysFrom(new pro.outcome.data.Query<I>(pq, _instanceType).iterate()));
+		getLogger().log(info("running query: DELETE FROM {} WHERE {}", getName(), params));
+		// TODO use Query().setKeysOnly for better performance
+		_ds.delete(_getKeysFrom(new Query<I>(this).run().iterate()));
 	}
 	
 	public void deleteAll() {
@@ -288,35 +283,34 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 	}
 	
-	public I findSingle(QueryArg ... params) {
-		Checker.checkEmpty(params);
+	public I findSingle(QueryArg ... args) {
+		Checker.checkEmpty(args);
+		Checker.checkNullElements(args);
 		_loadOnFirstUse();
-		List<Filter> filters = new ArrayList<>(params.length);
+		// Check if id is an argument:
 		QueryArg idArg = null;
-		for(QueryArg p : params) {
-			if(p.getProperty().getName().equals("id")) {
-				idArg = p;
-			}
-			else {
-				filters.add(p.toFilter());
+		for(QueryArg arg : args) {
+			if(arg.getProperty().getName().equals("id")) {
+				idArg = arg;
+				break;
 			}
 		}
 		if(idArg != null) {
-			// Retrieve entity by ID and compare parameters since querying on ID does not work:
+			// Retrieve entity by id and compare parameters since querying on id does not work:
 			I i = find((Long)idArg.getValue());
 			if(i == null) {
 				return null;
 			}
 			// Check if entity matches filter values:
-			for(QueryArg p : params) {
-				if(p != idArg) {
-					Object value = i.getValue(p.getProperty());
-					if(value == null && p.getValue() != null) {
-						getLogger().log(info("property {} does not match", p.getProperty().getFullName()));
+			for(QueryArg arg : args) {
+				if(arg != idArg) {
+					Object value = i.getValue(arg.getProperty());
+					if(value == null && arg.getValue() != null) {
+						getLogger().log(info("property {} does not match", arg.getProperty().getFullName()));
 						return null;
 					}
-					if(!value.equals(p.getValue())) {
-						getLogger().log(info("property {} does not match", p.getProperty().getFullName()));
+					if(!value.equals(arg.getValue())) {
+						getLogger().log(info("property {} does not match", arg.getProperty().getFullName()));
 						return null;
 					}
 				}
@@ -325,32 +319,32 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 		else {
 			// Retrieve entity based on filters:
-			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
-			Query q = new Query(getName()).setFilter(f);
-			getLogger().log(info("running query: {}", q));
-			com.google.appengine.api.datastore.Entity e = _ds.prepare(q).asSingleEntity();
-			getLogger().log(info(e == null ? "{} not found" : "{} found", getInstanceName()));
-			return _createSafely(e);
+			Query<I> q = new Query<>(this).addWhere(args);
+			List<I> results = q.run().list();
+			if(results.isEmpty()) {
+				return null;
+			}
+			if(results.size() == 1) {
+				return results.get(0);
+			}
+			throw new IllegalStateException(x("expected 1 result, found {}", results.size()));
 		}
 	}
 	
-	public pro.outcome.data.Query<I> findWhere(QueryArg ... params) {
+	public QueryResult<I> findWhere(QueryArg ... args) {
+		Checker.checkNullElements(args);
 		_loadOnFirstUse();
-		PreparedQuery pq = _ds.prepare(_prepareQuery(params));
-		getLogger().log(info("running query: {}", pq));
-		return new pro.outcome.data.Query<I>(pq, _instanceType);
+		Query<I> q = new Query<>(this).addWhere(args);
+		return q.run();
 	}
 	
-	public pro.outcome.data.Query<I> findAll() {
+	public QueryResult<I> findAll() {
 		return findWhere();
 	}
-	
-	// For Entities:
-	void load() {
-		if(_loaded) {
-			throw new IllegalStateException("already loaded");
-		}
-		_loaded = true;
+
+	// For Query:
+	DatastoreService getDatastoreService() {
+		return _ds;
 	}
 
 	private <T> Property<T> _addProperty(Class<T> c, String name, boolean indexed, ValueGenerator<T> def, Property.OnDelete onDelete, Constraint ... constraints) {
@@ -396,6 +390,7 @@ public abstract class Entity<I extends Instance<?>> {
 					prop.setRelatedEntity(foreignEntity);
 					// Record a delete dependency:
 					foreignEntity._dependencies.add(new Dependency((Entity<Instance<?>>)this, prop));
+					getLogger().log(info("created dependency between {} and {}", foreignEntity.getName(), getName()));
 				}
 			}
 			_loaded = true;
@@ -408,21 +403,6 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 	}
 
-	private Query _prepareQuery(QueryArg ... params) {
-		Checker.checkNullElements(params);
-		Query q = new Query(getName());
-		if(params.length > 0) {
-			List<Filter> filters = new ArrayList<>(params.length);
-			for(QueryArg p : params) {
-				filters.add(p.toFilter());
-			}
-			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
-			q.setFilter(f);
-		}
-		getLogger().log(info("running query: {}", q));
-		return q;
-	}
-	
 	private void _put(I i) {
     	// Consistency check:
 		if(i.hasUpdates()) {
@@ -434,7 +414,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	// TODO performance - we retrieve "existing" multiple times
 	private void _checkUnique(Instance<?> i, Property<?> prop, Object value, boolean insert) {
-		Instance<?> existing = findSingle(new QueryArg(prop, value));
+		Instance<?> existing = findSingle(new QueryArg(prop, value, QueryArg.Operator.EQUAL));
 		if(existing != null) {
 			if(insert) {
 				throw new UniqueConstraintException(prop, value);				
@@ -485,6 +465,7 @@ public abstract class Entity<I extends Instance<?>> {
 		return Instance.newFrom(_instanceType, e);
 	}
 	
+	// TODO rename to KeyIterator for clarity
 	private Iterable<Key> _getKeysFrom(final Iterator<I> it) {
 		return new Iterable<Key>() {
 			public Iterator<Key> iterator() {

@@ -28,11 +28,6 @@ public class QueryArg {
 		_value = value;
 		_op = op;
 	}
-	
-	// For Property:
-	<T> QueryArg(Property<T> property, Object value) {
-		this(property, value, Operator.EQUAL);
-	}
 
 	public Property<?> getProperty() {
 		return _property;

@@ -154,7 +154,7 @@ public abstract class Instance<E extends Entity<?>> {
 		Property<?>[] props = getEntity().getNaturalKeyProperties();
 		QueryArg[] arg = new QueryArg[props.length];
 		for(int i=0; i<props.length; i++) {
-			arg[i] = new QueryArg(props[i], getValue(props[i]));
+			arg[i] = new QueryArg(props[i], getValue(props[i]), QueryArg.Operator.EQUAL);
 		}
 		return arg;
 	}

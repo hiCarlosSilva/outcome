@@ -1,86 +1,121 @@
-// All the information contained in this source code file is a property of Outcome Professional Services Limited,
-// a company registered in the United Kingdom. Use and distribution of any part of the information 
-// contained in this source code file without our prior consent is forbidden. If you have an interest 
-// in using any part of this source code in your software, please contact hiCarlosSilva@gmail.com.
 package pro.outcome.data;
-import java.util.Iterator;
 import java.util.List;
-import java.util.AbstractList;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
+import java.util.ArrayList;
 import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Query.CompositeFilter;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
+import com.google.appengine.api.datastore.Query.Filter;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import pro.outcome.util.Checker;
+import static pro.outcome.util.Shortcuts.*;
 
 
-
-// TODO what should the fetch options be?
 public class Query<I extends Instance<?>> {
 
-	private final PreparedQuery _pq;
-	private final Class<I> _type;
+	private final Entity<I> _entity;
+	private final List<QueryArg> _args;
+	private final com.google.appengine.api.datastore.Query _query;
+	private int _limit;
+	private boolean _savePosition;
+	private String _position;
 	private int _fetchSize;
-	
-	// For Facade:
-	Query(PreparedQuery pq, Class<I> type) {
-		_pq = pq;
-		_type = type;
+
+	public Query(Entity<I> entity) {
+		Checker.checkNull(entity);
+		_entity = entity;
+		_args = new ArrayList<>();
+		_query = new com.google.appengine.api.datastore.Query(_entity.getName());
+		_limit = -1;
+		_savePosition = false;
+		_position = null;
 		_fetchSize = 10;
 	}
 	
-	public int getFetchSize() { return _fetchSize; }
-	public Query<I> setFetchSize(int fetchSize) { _fetchSize = fetchSize; return this; }
-	
-	public Iterator<I> iterate() {
-		return new _InstanceIterator(_pq.asIterator(FetchOptions.Builder.withChunkSize(_fetchSize)));
-	}
-	
-	public List<I> list() {
-		return new _InstanceList(_pq.asList(FetchOptions.Builder.withChunkSize(_fetchSize)));
+	public String toString() {
+		return _query.toString();
 	}
 
-	// Converts from Iterator<Entity> to Iterator<I>:
-	private class _InstanceIterator implements Iterator<I> {
-		
-		private final Iterator<Entity> _source;
-		
-		public _InstanceIterator(Iterator<Entity> source) {
-			_source = source;
-		}
-		
-		public boolean hasNext() {
-			return _source.hasNext();
-		}
-
-		public void remove() {
-			_source.remove();
-		}
-		
-		public I next() {
-			return Instance.newFrom(_type, _source.next());
-		}
-	}
-	
-	private class _InstanceList extends AbstractList<I> {
-		
-		private final List<Entity> _source;
-		private final Object[] _cache;
-		
-		public _InstanceList(List<Entity> source) {
-			_source = source;
-			_cache = new Object[_source.size()];
-		}
-		
-		public int size() {
-			return _source.size();
-		}
-		
-		@SuppressWarnings("unchecked")
-		public I get(int index) {
-			if(_cache[index] != null) {
-				return (I)_cache[index];
+	public Query<I> addWhere(QueryArg ... args) {
+		Checker.checkNullElements(args);
+		for(QueryArg arg : args) {
+			if(arg.getProperty().getEntity() != _entity) {
+				throw new IllegalArgumentException(x("property {} cannot be used to query entity {}", arg.getProperty().getFullName(), _entity.getName()));
 			}
-			I i = Instance.newFrom(_type, _source.get(index));
-			_cache[index] = i;
-			return i;
+			_args.add(arg);
 		}
+		return this;
+	}
+	
+	public Query<I> addSortByAsc(Property<?> p) {
+		return _addSortBy(p, SortDirection.ASCENDING);
+	}
+
+	public Query<I> addSortByDesc(Property<?> p) {
+		return _addSortBy(p, SortDirection.DESCENDING);
+	}
+	
+	public Query<I> setLimit(int limit) {
+		Checker.checkMinValue(limit, 1);
+		_limit = limit;
+		return this;
+	}
+	
+	public Query<I> setSavePosition(boolean value) {
+		_savePosition = value;
+		return this;
+	}
+	
+	public Query<I> setPosition(String position) {
+		Checker.checkEmpty(position);
+		_position = position;
+		return this;
+	}
+
+	public int getFetchSize() {
+		return _fetchSize;
+	}
+	
+	public Query<I> setFetchSize(int fetchSize) {
+		Checker.checkMinValue(fetchSize, 1);
+		_fetchSize = fetchSize;
+		return this;
+	}
+	
+	public QueryResult<I> run() {
+		// Prepare query:
+		if(_args.size() > 0) {
+			List<Filter> filters = new ArrayList<>(_args.size());
+			for(QueryArg arg : _args) {
+				filters.add(arg.toFilter());
+			}
+			Filter f = filters.size() > 1 ? new CompositeFilter(CompositeFilterOperator.AND, filters) : filters.get(0);
+			_query.setFilter(f);
+		}
+		PreparedQuery pq = _entity.getDatastoreService().prepare(_query);
+		// Prepare fetch options:
+		FetchOptions options = FetchOptions.Builder.withChunkSize(_fetchSize);
+		if(_limit != -1) {
+			options.limit(_limit);
+		}
+		if(_position != null) {
+			options.startCursor(Cursor.fromWebSafeString(_position));
+		}
+		// Return wrapper:
+		_entity.getLogger().log(info("running query: {}", pq));
+		return new QueryResult<I>(_entity.getInstanceClass(), pq, options, _savePosition);
+	}
+	
+	private Query<I> _addSortBy(Property<?> p, SortDirection direction) {
+		Checker.checkNull(p);
+		if(p.getEntity() != _entity) {
+			throw new IllegalArgumentException(x("property {} cannot be used to sort entity {}", p.getFullName(), _entity.getName()));
+		}
+		if(!p.isIndexed()) {
+			throw new IllegalArgumentException(x("{}: cannot sort on non-indexed properties", p.getFullName()));
+		}
+		_query.addSort(p.getName(), direction);
+		return this;
 	}
 }

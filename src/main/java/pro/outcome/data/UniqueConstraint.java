@@ -43,7 +43,7 @@ class UniqueConstraint {
 	public QueryArg[] toArgs(Instance<?> i) {
 		QueryArg[] args = new QueryArg[_props.length];
 		for(int j=0; j<_props.length; j++) {
-			args[j] = new QueryArg(_props[j], i.getValue(_props[j]));
+			args[j] = new QueryArg(_props[j], i.getValue(_props[j]), QueryArg.Operator.EQUAL);
 		}
 		return args;
 	}

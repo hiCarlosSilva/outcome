@@ -66,7 +66,7 @@ public class ConfigWrapper {
 	}
 
 	private static void _delete(String propName) {
-		ConfigValue value = getConfig().findSingle(Entities.config.name.toArg(propName));
+		ConfigValue value = getConfig().findSingle(Entities.config.name.equalTo(propName));
 		if(value != null) {
 			getConfig().delete(value);
 		}

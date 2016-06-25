@@ -8,6 +8,7 @@ import pro.outcome.util.IntegrityException;
 import static pro.outcome.util.Shortcuts.*;
 
 
+
 public class Property<T> {
 
 	// TODO add IGNORE_CASE constraint
@@ -106,12 +107,8 @@ public class Property<T> {
 		return _onDelete;
 	}
 	
-	public QueryArg toArg(T value) {
-		return new QueryArg(this, value);
-	}
-
-	public QueryArg toArg(T value, QueryArg.Operator op) {
-		return new QueryArg(this, value, op);
+	public QueryArg equalTo(T value) {
+		return new QueryArg(this, value, QueryArg.Operator.EQUAL);
 	}
 
 	public String toString() {
