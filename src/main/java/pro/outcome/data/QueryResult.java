@@ -51,6 +51,10 @@ public class QueryResult<I extends Instance<?>> {
 			throw new IllegalUsageException("position was already retrieved");
 		}
 		_positionRetrieved = true;
+		if(_list.size() < _options.getLimit()) {
+			// No more results:
+			return null;
+		}
 		return _list.getCursor().toWebSafeString();
 	}
 
