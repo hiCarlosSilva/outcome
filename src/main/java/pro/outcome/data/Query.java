@@ -43,6 +43,9 @@ public class Query<I extends Instance<?>> {
 			if(arg.getProperty().getEntity() != _entity) {
 				throw new IllegalArgumentException(x("property {} cannot be used to query entity {}", arg.getProperty().getFullName(), _entity.getName()));
 			}
+			if(arg.getProperty() == _entity.id) {
+				throw new IllegalArgumentException("cannot use id property in multiple result query. Use findSingle instead.");
+			}
 			_args.add(arg);
 		}
 		return this;

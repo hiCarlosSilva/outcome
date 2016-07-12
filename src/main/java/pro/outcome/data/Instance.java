@@ -84,12 +84,14 @@ public abstract class Instance<E extends Entity<?>> {
 		return (E)Entities.getEntityForInstance(getClass());
 	}
 
+	public abstract String getDescription();
+
 	public final Long getId() { return _e.getKey().getId(); }
 	public final Date getTimeCreated() { return getValue(getEntity().timeCreated); }
 	public final Date getTimeUpdated() { return getValue(getEntity().timeUpdated); }
 
 	@SuppressWarnings("unchecked")
-	protected <T> T getValue(Property<T> prop) {
+	public <T> T getValue(Property<T> prop) {
 		Checker.checkNull(prop);
 		_checkProperty(prop);
 		// Primary key (not stored as a property):

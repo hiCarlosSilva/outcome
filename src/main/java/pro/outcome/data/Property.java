@@ -103,6 +103,10 @@ public class Property<T> {
 		return _foreignKey;
 	}
 	
+	public Entity<?> getRelatedEntity() {
+		return _related;
+	}
+
 	public OnDelete getOnDeleteAction() {
 		return _onDelete;
 	}
@@ -134,6 +138,10 @@ public class Property<T> {
 		}
 		// Convert foreign entities to their id's:
 		if(Instance.class.isAssignableFrom(_type)) {
+			// Direct conversion to Long:
+			if(value instanceof Long) {
+				return value;
+			}
 			Instance<?> i = (Instance<?>)value;
 			// Validate that foreign instance key is set:
 			if(!i.isPersisted()) {

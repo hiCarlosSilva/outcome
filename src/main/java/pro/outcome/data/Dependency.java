@@ -5,21 +5,30 @@
 package pro.outcome.data;
 
 
-class Dependency {
+public class Dependency {
 
-	public final Entity<Instance<?>> entity;
-	public final Property<?> foreignKey;
+	private final Entity<Instance<?>> _entity;
+	private final Property<?> _foreignKey;
 
-	public Dependency(Entity<Instance<?>> entity, Property<?> foreignKey) {
-		this.entity = entity;
-		this.foreignKey = foreignKey;
+	// For Entity:
+	Dependency(Entity<Instance<?>> entity, Property<?> foreignKey) {
+		_entity = entity;
+		_foreignKey = foreignKey;
 	}
 	
+	public Entity<Instance<?>> getEntity() {
+		return _entity;
+	}
+
+	public Property<?> getForeignKey() {
+		return _foreignKey;
+	}
+
 	public String toString() {
-		return "Dependency: "+foreignKey.getFullName();
+		return "Dependency: "+_foreignKey.getFullName();
 	}
 	
 	public QueryResult<Instance<?>> findInstancesRelatedTo(Instance<?> i) {
-		return entity.findWhere(new QueryArg(foreignKey, i, QueryArg.Operator.EQUAL));
+		return _entity.findWhere(new QueryArg(_foreignKey, i, QueryArg.Operator.EQUAL));
 	}
 }

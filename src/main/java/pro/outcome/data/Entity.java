@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import pro.outcome.util.Checker;
 import pro.outcome.util.ImmutableMap;
+import pro.outcome.util.ImmutableList;
 import pro.outcome.util.IntegrityException;
 import pro.outcome.util.IllegalUsageException;
 import pro.outcome.data.Property.Constraint;
@@ -87,6 +88,9 @@ public abstract class Entity<I extends Instance<?>> {
 		return new ImmutableMap<String,Property<?>>(_properties);
 	}
 
+	public ImmutableList<Dependency> getDependencies() {
+		return new ImmutableList<Dependency>(_dependencies);
+	}
 	
 	protected <T> Property<T> addProperty(Class<T> c, String name, boolean indexed, Constraint ... constraints) {
 		return _addProperty(c, name, indexed, (Generators.Direct<T>)null, null, constraints);
@@ -232,21 +236,21 @@ public abstract class Entity<I extends Instance<?>> {
 		getLogger().log(info("deleting {} with id {}", getInstanceName(), i.getId()));
 		// Process dependencies:
 		for(Dependency d : _dependencies) {
-			getLogger().log(info("found dependency in {}", d.entity.getName()));
+			getLogger().log(info("found dependency in {}", d.getEntity().getName()));
 			Iterator<Instance<?>> it = d.findInstancesRelatedTo(i).iterate();
 			while(it.hasNext()) {
 				Instance<?> related = it.next();
-				OnDelete onDeleteAction = d.foreignKey.getOnDeleteAction();
+				OnDelete onDeleteAction = d.getForeignKey().getOnDeleteAction();
 				if(onDeleteAction == Property.OnDelete.CASCADE) {
-					d.entity.delete(related);
+					d.getEntity().delete(related);
 				}
 				else if(onDeleteAction == Property.OnDelete.RESTRICT) {
 					// TODO onDeleteException??
 					throw new RuntimeException(x("{} cannot be deleted because there is a related {}", related.getEntity().getInstanceName(), getInstanceName()));
 				}
 				else if(onDeleteAction == Property.OnDelete.SET_NULL) {
-					related.setValue(d.foreignKey, null);
-					d.entity.update(related);
+					related.setValue(d.getForeignKey(), null);
+					d.getEntity().update(related);
 				}
 				else {
 					throw new IntegrityException(onDeleteAction);
@@ -262,7 +266,7 @@ public abstract class Entity<I extends Instance<?>> {
 		_loadOnFirstUse();
 		getLogger().log(info("running query: DELETE FROM {} WHERE {}", getName(), params));
 		// TODO use Query().setKeysOnly for better performance
-		_ds.delete(_getKeysFrom(new Query<I>(this).run().iterate()));
+		_ds.delete(_getKeysFrom(new Query<I>(this).addWhere(params).run().iterate()));
 	}
 	
 	public void deleteAll() {
@@ -271,6 +275,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public I find(Long id) {
 		Checker.checkNull(id);
+		Checker.checkMinValue(id, 1L);
 		_loadOnFirstUse();
 		try {
 			getLogger().log(info("running query: SELECT * FROM {} WHERE id = {}", getName(), id));
