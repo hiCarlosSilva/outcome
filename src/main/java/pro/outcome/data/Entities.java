@@ -33,6 +33,12 @@ public abstract class Entities {
 		_byInstance.put(e.getInstanceClass(), e);
 	}
 	
+	public static void load() {
+		for(Entity<?> e : _byName.values()) {
+			e.load();
+		}
+	}
+
 	public static Entity<?> getEntity(String name) {
 		Checker.checkEmpty(name);
 		return _byName.get(name);
@@ -47,6 +53,10 @@ public abstract class Entities {
 		return new ImmutableMap<String,Entity<? extends Instance<?>>>(_byName);
 	}
 		
+	static {
+		load();
+	}
+
 	// INSTANCE:
 	protected Entities() {}
 }

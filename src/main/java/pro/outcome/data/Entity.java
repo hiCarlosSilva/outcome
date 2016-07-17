@@ -133,7 +133,7 @@ public abstract class Entity<I extends Instance<?>> {
 	// Data management methods:
 	public void insert(I i) {
 		Checker.checkNull(i);
-		_loadOnFirstUse();
+		_checkLoaded();
 		if(i.isPersisted()) {
 			throw new IllegalArgumentException("entity has already been persisted");
 		}
@@ -187,7 +187,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public boolean update(I i) {
 		Checker.checkNull(i);
-		_loadOnFirstUse();
+		_checkLoaded();
 		_checkPersisted(i);
 		if(!i.hasUpdates()) {
 			return false;
@@ -214,7 +214,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public boolean save(I i) {
 		Checker.checkNull(i);
-		_loadOnFirstUse();
+		_checkLoaded();
 		I existing = findSingle(i.getNaturalKeyAsArg());
 		if(existing == null) {
 			insert(i);
@@ -231,7 +231,7 @@ public abstract class Entity<I extends Instance<?>> {
 
 	public void delete(I i) {
 		Checker.checkNull(i);
-		_loadOnFirstUse();
+		_checkLoaded();
 		_checkPersisted(i);
 		getLogger().log(info("deleting {} with id {}", getInstanceName(), i.getId()));
 		// Process dependencies:
@@ -263,7 +263,7 @@ public abstract class Entity<I extends Instance<?>> {
 	}
 
 	public void deleteWhere(QueryArg ... params) {
-		_loadOnFirstUse();
+		_checkLoaded();
 		getLogger().log(info("running query: DELETE FROM {} WHERE {}", getName(), params));
 		// TODO use Query().setKeysOnly for better performance
 		_ds.delete(_getKeysFrom(new Query<I>(this).addWhere(params).run().iterate()));
@@ -276,7 +276,7 @@ public abstract class Entity<I extends Instance<?>> {
 	public I find(Long id) {
 		Checker.checkNull(id);
 		Checker.checkMinValue(id, 1L);
-		_loadOnFirstUse();
+		_checkLoaded();
 		try {
 			getLogger().log(info("running query: SELECT * FROM {} WHERE id = {}", getName(), id));
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
@@ -291,7 +291,7 @@ public abstract class Entity<I extends Instance<?>> {
 	public I findSingle(QueryArg ... args) {
 		Checker.checkEmpty(args);
 		Checker.checkNullElements(args);
-		_loadOnFirstUse();
+		_checkLoaded();
 		// Check if id is an argument:
 		QueryArg idArg = null;
 		for(QueryArg arg : args) {
@@ -338,13 +338,34 @@ public abstract class Entity<I extends Instance<?>> {
 	
 	public QueryResult<I> findWhere(QueryArg ... args) {
 		Checker.checkNullElements(args);
-		_loadOnFirstUse();
+		_checkLoaded();
 		Query<I> q = new Query<>(this).addWhere(args);
 		return q.run();
 	}
 	
 	public QueryResult<I> findAll() {
 		return findWhere();
+	}
+
+	// For Entities:
+	@SuppressWarnings("unchecked")
+	void load() {
+		if(!_loaded) {
+			getLogger().log(info("loading entity {}", getName()));
+			// Load all related entities and dependencies:
+			for(Property<?> prop : _properties.values()) {
+				if(prop.isForeignKey()) {
+					// Get the foreign entity:
+					Entity<?> foreignEntity = Entities.getEntityForInstance(prop.getType());
+					// Store related entity:
+					prop.setRelatedEntity(foreignEntity);
+					// Record a delete dependency:
+					foreignEntity._dependencies.add(new Dependency((Entity<Instance<?>>)this, prop));
+					getLogger().log(info("created dependency between {} and {}", foreignEntity.getName(), getName()));
+				}
+			}
+			_loaded = true;
+		}
 	}
 
 	// For Query:
@@ -383,22 +404,9 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void _loadOnFirstUse() {
+	private void _checkLoaded() {
 		if(!_loaded) {
-			// Load all related entities and dependencies:
-			for(Property<?> prop : _properties.values()) {
-				if(prop.isForeignKey()) {
-					// Get the foreign entity:
-					Entity<?> foreignEntity = Entities.getEntityForInstance(prop.getType());
-					// Store related entity:
-					prop.setRelatedEntity(foreignEntity);
-					// Record a delete dependency:
-					foreignEntity._dependencies.add(new Dependency((Entity<Instance<?>>)this, prop));
-					getLogger().log(info("created dependency between {} and {}", foreignEntity.getName(), getName()));
-				}
-			}
-			_loaded = true;
+			throw new IllegalStateException("entity has not been loaded yet");
 		}
 	}
 
