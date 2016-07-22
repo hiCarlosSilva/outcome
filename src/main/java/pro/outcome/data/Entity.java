@@ -277,6 +277,8 @@ public abstract class Entity<I extends Instance<?>> {
 		Checker.checkNull(id);
 		Checker.checkMinValue(id, 1L);
 		_checkLoaded();
+		// TODO cache entities already retrieved by ID. This would seriously improve performance,
+		// especially when retrieving foreign entities 
 		try {
 			getLogger().log(info("running query: SELECT * FROM {} WHERE id = {}", getName(), id));
 			com.google.appengine.api.datastore.Entity e = _ds.get(KeyFactory.createKey(getName(), id));
@@ -302,6 +304,7 @@ public abstract class Entity<I extends Instance<?>> {
 		}
 		if(idArg != null) {
 			// Retrieve entity by id and compare parameters since querying on id does not work:
+			// TODO use Entity.KEY_RESERVED_PROPERTY for the id
 			I i = find((Long)idArg.getValue());
 			if(i == null) {
 				return null;

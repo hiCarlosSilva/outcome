@@ -111,8 +111,20 @@ public class Property<T> {
 		return _onDelete;
 	}
 	
-	public QueryArg equalTo(T value) {
+	public QueryArg isEqualTo(T value) {
 		return new QueryArg(this, value, QueryArg.Operator.EQUAL);
+	}
+	
+	public QueryArg isNotEqualTo(T value) {
+		return new QueryArg(this, value, QueryArg.Operator.NOT_EQUAL);
+	}
+
+	public QueryArg isNull() {
+		return isEqualTo(null);
+	}
+
+	public QueryArg isNotNull() {
+		return isNotEqualTo(null);
 	}
 
 	public String toString() {

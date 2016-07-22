@@ -36,7 +36,7 @@ public class Config extends Entity<ConfigValue> {
 			value = _cache.get(name);
 		}
 		else {
-			value = findSingle(this.name.equalTo(name));
+			value = findSingle(this.name.isEqualTo(name));
 			_cache.put(name, value);
 		}
 		if(value == null) {

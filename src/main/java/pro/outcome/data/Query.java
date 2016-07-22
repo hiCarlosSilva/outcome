@@ -8,6 +8,8 @@ import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.SortDirection;
+
+import pro.outcome.data.QueryArg.Operator;
 import pro.outcome.util.Checker;
 import static pro.outcome.util.Shortcuts.*;
 
@@ -21,6 +23,7 @@ public class Query<I extends Instance<?>> {
 	private boolean _savePosition;
 	private String _position;
 	private int _fetchSize;
+	private QueryArg _inequality;
 
 	public Query(Entity<I> entity) {
 		Checker.checkNull(entity);
@@ -31,6 +34,7 @@ public class Query<I extends Instance<?>> {
 		_savePosition = false;
 		_position = null;
 		_fetchSize = 10;
+		_inequality = null;
 	}
 	
 	public String toString() {
@@ -41,10 +45,21 @@ public class Query<I extends Instance<?>> {
 		Checker.checkNullElements(args);
 		for(QueryArg arg : args) {
 			if(arg.getProperty().getEntity() != _entity) {
-				throw new IllegalArgumentException(x("property {} cannot be used to query entity {}", arg.getProperty().getFullName(), _entity.getName()));
+				throw new IllegalArgumentException(x("property '{}' cannot be used to query entity '{}'", arg.getProperty().getFullName(), _entity.getName()));
 			}
 			if(arg.getProperty() == _entity.id) {
-				throw new IllegalArgumentException("cannot use id property in multiple result query. Use findSingle instead.");
+				throw new IllegalArgumentException("cannot use 'id' property in multiple result query. Use findSingle instead.");
+			}
+			// All inequality filters must apply to the same property:
+			if(arg.getOperator() != Operator.EQUAL) {
+				if(_inequality == null) {
+					_inequality = arg;
+				}
+				else {
+					if(!arg.getProperty().equals(_inequality.getProperty())) {
+						throw new IllegalArgumentException(x("query already has an inequality filter for property '{}'", _inequality.getProperty().getName()));
+					}
+				}
 			}
 			_args.add(arg);
 		}
@@ -116,8 +131,22 @@ public class Query<I extends Instance<?>> {
 			throw new IllegalArgumentException(x("property {} cannot be used to sort entity {}", p.getFullName(), _entity.getName()));
 		}
 		if(!p.isIndexed()) {
-			throw new IllegalArgumentException(x("{}: cannot sort on non-indexed properties", p.getFullName()));
+			throw new IllegalArgumentException(x("{}: cannot sort on non-indexed properties", p.getName()));
 		}
+		// Properties used in inequality filters must be sorted first:
+		if(_query.getSortPredicates().isEmpty()) {
+			if(_inequality != null && !p.equals(_inequality)) {
+				throw new IllegalArgumentException(x("{}: a filter on '{}' is required first, because it has an inequality filter", p.getName(), _inequality.getProperty().getName()));
+			}
+		}
+
+		// Sort orders are ignored on properties with equality filters:
+		for(QueryArg arg : _args) {
+			if(arg.getProperty().equals(p) && arg.getOperator() == Operator.EQUAL) {
+				throw new IllegalArgumentException(x("{}: cannot sort on properties with equality filters", p.getName()));
+			}
+		}
+
 		_query.addSort(p.getName(), direction);
 		return this;
 	}

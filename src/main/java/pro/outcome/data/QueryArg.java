@@ -12,7 +12,7 @@ import static pro.outcome.util.Shortcuts.*;
 public class QueryArg {
 
 	// TYPE:
-	public static enum Operator { EQUAL, NOT_EQUAL };
+	public static enum Operator { EQUAL, NOT_EQUAL, GREATER_THAN };
 	
 	// INSTANCE:
 	private final Property<?> _property;
@@ -35,6 +35,10 @@ public class QueryArg {
 	
 	public Object getValue() {
 		return _value;
+	}
+	
+	public Operator getOperator() {
+		return _op;
 	}
 	
 	public String toString() {
@@ -60,6 +64,9 @@ public class QueryArg {
 		}
 		if(_op == Operator.NOT_EQUAL) {
 			return FilterOperator.NOT_EQUAL;
+		}
+		if(_op == Operator.GREATER_THAN) {
+			return FilterOperator.GREATER_THAN;
 		}
 		throw new IntegrityException(_op);
 	}
