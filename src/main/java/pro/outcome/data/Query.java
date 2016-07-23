@@ -33,7 +33,7 @@ public class Query<I extends Instance<?>> {
 		_limit = -1;
 		_savePosition = false;
 		_position = null;
-		_fetchSize = 10;
+		_fetchSize = 100;
 		_inequality = null;
 	}
 	
@@ -77,6 +77,7 @@ public class Query<I extends Instance<?>> {
 	public Query<I> setLimit(int limit) {
 		Checker.checkMinValue(limit, 1);
 		_limit = limit;
+		setFetchSize(limit);
 		return this;
 	}
 	

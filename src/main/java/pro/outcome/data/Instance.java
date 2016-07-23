@@ -35,12 +35,14 @@ public abstract class Instance<E extends Entity<?>> {
 	}
 	
 	// INSTANCE:
-	private com.google.appengine.api.datastore.Entity _e;
+	private com.google.appengine.api.datastore.Entity _data;
 	private final Map<Property<?>,Object> _updates;
+	private E _e;
 	
 	protected Instance() {
-		_e = new com.google.appengine.api.datastore.Entity(getEntity().getName());
+		_data = new com.google.appengine.api.datastore.Entity(getEntity().getName());
 		_updates = new HashMap<>();
+		_e = null;
 	}
 
 	public boolean equals(Object o) {
@@ -53,11 +55,11 @@ public abstract class Instance<E extends Entity<?>> {
 		if(!(o instanceof Instance)) {
 			return false;
 		}
-		return _e.equals(((Instance<?>)o)._e);
+		return _data.equals(((Instance<?>)o)._data);
 	}
 	
 	public int hashCode() {
-		return _e.hashCode();
+		return _data.hashCode();
 	}
 	
 	public String toString() {
@@ -81,12 +83,15 @@ public abstract class Instance<E extends Entity<?>> {
 
 	@SuppressWarnings("unchecked")
 	public E getEntity() {
-		return (E)Entities.getEntityForInstance(getClass());
+		if(_e == null) {
+			_e = (E)Entities.getEntityForInstance(getClass());
+		}
+		return _e;
 	}
 
 	public abstract String getDescription();
 
-	public final Long getId() { return _e.getKey().getId(); }
+	public final Long getId() { return _data.getKey().getId(); }
 	public final Date getTimeCreated() { return getValue(getEntity().timeCreated); }
 	public final Date getTimeUpdated() { return getValue(getEntity().timeUpdated); }
 
@@ -104,7 +109,7 @@ public abstract class Instance<E extends Entity<?>> {
 			return (T)_updates.get(prop);
 		}
 		// We don't, extract from the Google entity and convert:
-		return prop.toObject(_e.getProperty(prop.getName()));
+		return prop.toObject(_data.getProperty(prop.getName()));
 	}
 
 	protected <T> void setValue(Property<T> prop, T value) {
@@ -149,7 +154,7 @@ public abstract class Instance<E extends Entity<?>> {
 	}
 	
 	public boolean isPersisted() {
-		return _e.getKey().isComplete();
+		return _data.getKey().isComplete();
 	}
 	
 	public QueryArg[] getNaturalKeyAsArg() {
@@ -163,7 +168,7 @@ public abstract class Instance<E extends Entity<?>> {
 
 	// For Entity:
 	com.google.appengine.api.datastore.Entity getGoogleEntity() {
-		return _e;
+		return _data;
 	}
 	
 	// For Entity:
@@ -190,10 +195,10 @@ public abstract class Instance<E extends Entity<?>> {
 	void flush(Property<?> prop, Object value) {
 		value = prop.toPrimitive(value);
 		if(prop.isIndexed()) {
-			_e.setProperty(prop.getName(), value);
+			_data.setProperty(prop.getName(), value);
 		}
 		else {
-			_e.setUnindexedProperty(prop.getName(), value);
+			_data.setUnindexedProperty(prop.getName(), value);
 		}
 		// Its now safe to clear this update:
 		_updates.remove(prop);
@@ -207,7 +212,7 @@ public abstract class Instance<E extends Entity<?>> {
 	// For Self and Entity:
 	void setGoogleEntity(com.google.appengine.api.datastore.Entity e) {
 		_updates.clear();
-		_e = e;
+		_data = e;
 	}
 	
 	private void _checkProperty(Property<?> prop) {
@@ -218,11 +223,11 @@ public abstract class Instance<E extends Entity<?>> {
 	}
 
 	private boolean _willUpdate() {
-		return _e.getKey().isComplete();
+		return _data.getKey().isComplete();
 	}
 	
 	private void _removeIfNotUpdated(Property<?> prop, Object value) {
-		Object current = _e.getProperty(prop.getName());
+		Object current = _data.getProperty(prop.getName());
 		if(value == null) {
 			if(current == null) {
 				_updates.remove(prop);
