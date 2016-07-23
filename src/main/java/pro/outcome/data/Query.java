@@ -135,8 +135,8 @@ public class Query<I extends Instance<?>> {
 		}
 		// Properties used in inequality filters must be sorted first:
 		if(_query.getSortPredicates().isEmpty()) {
-			if(_inequality != null && !p.equals(_inequality)) {
-				throw new IllegalArgumentException(x("{}: a filter on '{}' is required first, because it has an inequality filter", p.getName(), _inequality.getProperty().getName()));
+			if(_inequality != null && !p.equals(_inequality.getProperty())) {
+				throw new IllegalArgumentException(x("{}: sorting on '{}' is required first, because it has an inequality filter", p.getName(), _inequality.getProperty().getName()));
 			}
 		}
 
