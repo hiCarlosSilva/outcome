@@ -119,14 +119,6 @@ public class Property<T> {
 		return new QueryArg(this, value, QueryArg.Operator.NOT_EQUAL);
 	}
 
-	public QueryArg isNull() {
-		return isEqualTo(null);
-	}
-
-	public QueryArg isNotNull() {
-		return isNotEqualTo(null);
-	}
-
 	public String toString() {
 		return getFullName();
 	}
